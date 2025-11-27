@@ -12,7 +12,7 @@ import type { MenuItem, Size } from '../types';
 
 export default function Home() {
     const { addItem } = useCart();
-    const { isOpen, statusMessage } = useOpeningHours();
+    const { isOpen, statusMessage, loading: openingHoursLoading } = useOpeningHours();
     const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMenuItem, setSelectedMenuItem] = useState<MenuItem | null>(null);
@@ -99,21 +99,18 @@ export default function Home() {
                 ></div>
 
                 <div className="relative z-10 max-w-6xl mx-auto px-4 text-center text-white">
-                    {/* Opening Status Badge */}
-                    <Link
-                        to="/menu"
-                        className={`mb-6 inline-flex items-center px-6 py-3 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-105 cursor-pointer ${isOpen ? 'bg-green-500/90 hover:bg-green-600/90' : 'bg-red-500/90 hover:bg-red-600/90'
-                            }`}
-                    >
-                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            {isOpen ? (
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            ) : (
+                    {/* Opening Status Badge - Only show when closed */}
+                    {!openingHoursLoading && !isOpen && (
+                        <Link
+                            to="/menu"
+                            className="mb-6 inline-flex items-center px-6 py-3 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-105 cursor-pointer bg-red-500/90 hover:bg-red-600/90"
+                        >
+                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                            )}
-                        </svg>
-                        <span className="font-semibold text-white">{statusMessage}</span>
-                    </Link>
+                            </svg>
+                            <span className="font-semibold text-white">{statusMessage}</span>
+                        </Link>
+                    )}
 
                     <div className="mb-8">
                         <h1 className="text-5xl md:text-6xl font-bold mb-4 leading-tight">

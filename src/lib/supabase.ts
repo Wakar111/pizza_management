@@ -7,9 +7,24 @@ export interface Discount {
     id: string;
     name: string;
     percentage: number;
-    startDate: string;
-    endDate: string;
+    startDate: string | null;
+    endDate: string | null;
     enabled: boolean;
+}
+
+// Opening Hours type
+export interface OpeningHour {
+    id: string;
+    day_of_week: number;
+    period_index: number;
+    start_time: string;
+    end_time: string;
+    is_closed: boolean;
+}
+
+export interface OpeningPeriod {
+    start: string;
+    end: string;
 }
 
 // Supabase initialization
@@ -331,6 +346,8 @@ export const orderService = {
                 items: orderData.items,
                 subtotal: orderData.subtotal,
                 delivery_fee: orderData.delivery_fee,
+                discounts: orderData.discounts || [],
+                discount_amount: orderData.discount_amount || 0,
                 total_amount: orderData.total_amount,
                 payment_method: orderData.payment_method || 'cash',
                 payment_status: orderData.payment_status || 'pending',
@@ -553,36 +570,104 @@ export const settingsService = {
 
     async getActiveDiscount(): Promise<Discount | null> {
         try {
-            const now = new Date().toISOString();
+            const now = new Date();
 
             const { data, error } = await supabase
                 .from('promotions')
                 .select('*')
-                .eq('enabled', true)
-                .lte('start_date', now)
-                .gte('end_date', now)
-                .order('percentage', { ascending: false })
-                .limit(1)
-                .maybeSingle();
+                .eq('enabled', true);
 
             if (error) {
                 console.error('Error getting active promotion:', error);
                 return null;
             }
 
-            if (!data) return null;
+            if (!data || data.length === 0) return null;
+
+            // Filter in memory to handle null dates (null start_date = active immediately, null end_date = never expires)
+            const activePromotions = data.filter((promo: any) => {
+                // Check start date (if exists, must be in past or now)
+                if (promo.start_date) {
+                    const startDate = new Date(promo.start_date);
+                    if (now < startDate) return false;
+                }
+
+                // Check end date (if exists, must be in future or now)
+                if (promo.end_date) {
+                    const endDate = new Date(promo.end_date);
+                    if (now > endDate) return false;
+                }
+
+                return true;
+            });
+
+            // Sort by percentage (highest first) and take the best one
+            activePromotions.sort((a: any, b: any) => b.percentage - a.percentage);
+            const bestPromo = activePromotions[0];
+
+            if (!bestPromo) return null;
 
             return {
-                id: data.id,
-                name: data.name,
-                percentage: data.percentage,
-                startDate: data.start_date,
-                endDate: data.end_date,
-                enabled: data.enabled
+                id: bestPromo.id,
+                name: bestPromo.name,
+                percentage: bestPromo.percentage,
+                startDate: bestPromo.start_date,
+                endDate: bestPromo.end_date,
+                enabled: bestPromo.enabled
             };
         } catch (error) {
             console.error('Error getting active promotion:', error);
             return null;
+        }
+    },
+
+    async getAllActiveDiscounts(): Promise<Discount[]> {
+        try {
+            const now = new Date();
+
+            const { data, error } = await supabase
+                .from('promotions')
+                .select('*')
+                .eq('enabled', true);
+
+            if (error) {
+                console.error('Error getting active promotions:', error);
+                return [];
+            }
+
+            if (!data || data.length === 0) return [];
+
+            // Filter in memory to handle null dates (null start_date = active immediately, null end_date = never expires)
+            const activePromotions = data.filter((promo: any) => {
+                // Check start date (if exists, must be in past or now)
+                if (promo.start_date) {
+                    const startDate = new Date(promo.start_date);
+                    if (now < startDate) return false;
+                }
+
+                // Check end date (if exists, must be in future or now)
+                if (promo.end_date) {
+                    const endDate = new Date(promo.end_date);
+                    if (now > endDate) return false;
+                }
+
+                return true;
+            });
+
+            // Sort by percentage (highest first) for consistent display
+            activePromotions.sort((a: any, b: any) => b.percentage - a.percentage);
+
+            return activePromotions.map((promo: any) => ({
+                id: promo.id,
+                name: promo.name,
+                percentage: promo.percentage,
+                startDate: promo.start_date,
+                endDate: promo.end_date,
+                enabled: promo.enabled
+            }));
+        } catch (error) {
+            console.error('Error getting active promotions:', error);
+            return [];
         }
     }
 };
@@ -722,3 +807,86 @@ export async function uploadMenuImage(file: File) {
 
     return data.publicUrl;
 }
+
+// Opening Hours Service
+export const openingHoursService = {
+    async getOpeningHours(): Promise<OpeningHour[]> {
+        try {
+            const { data, error } = await supabase
+                .from('opening_hours')
+                .select('*')
+                .order('day_of_week', { ascending: true })
+                .order('period_index', { ascending: true });
+
+            if (error) {
+                console.error('Error fetching opening hours:', error);
+                return [];
+            }
+
+            return data || [];
+        } catch (error) {
+            console.error('Error fetching opening hours:', error);
+            return [];
+        }
+    },
+
+    async updateDayHours(day: number, periods: OpeningPeriod[], isClosed: boolean = false): Promise<void> {
+        try {
+            // Delete existing periods for this day
+            const { error: deleteError } = await supabase
+                .from('opening_hours')
+                .delete()
+                .eq('day_of_week', day);
+
+            if (deleteError) throw deleteError;
+
+            // If day is closed, insert a single closed record
+            if (isClosed) {
+                const { error: insertError } = await supabase
+                    .from('opening_hours')
+                    .insert([{
+                        day_of_week: day,
+                        period_index: 0,
+                        start_time: '00:00',
+                        end_time: '00:00',
+                        is_closed: true
+                    }]);
+
+                if (insertError) throw insertError;
+                return;
+            }
+
+            // Insert new periods
+            if (periods.length > 0) {
+                const records = periods.map((period, index) => ({
+                    day_of_week: day,
+                    period_index: index,
+                    start_time: period.start,
+                    end_time: period.end,
+                    is_closed: false
+                }));
+
+                const { error: insertError } = await supabase
+                    .from('opening_hours')
+                    .insert(records);
+
+                if (insertError) throw insertError;
+            }
+        } catch (error) {
+            console.error('Error updating opening hours:', error);
+            throw error;
+        }
+    },
+
+    async updateAllHours(hoursData: Record<number, { periods: OpeningPeriod[], isClosed: boolean }>): Promise<void> {
+        try {
+            // Update each day
+            for (const [day, data] of Object.entries(hoursData)) {
+                await this.updateDayHours(parseInt(day), data.periods, data.isClosed);
+            }
+        } catch (error) {
+            console.error('Error updating all opening hours:', error);
+            throw error;
+        }
+    }
+};

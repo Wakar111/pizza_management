@@ -11,8 +11,8 @@ interface PaymentModalProps {
     items: CartItem[];
     totalPrice: number;
     deliveryFee: number;
-    discount?: Discount | null;
-    discountAmount?: number;
+    discounts?: Discount[];
+    totalDiscountAmount?: number;
     customerData: {
         name: string;
         phone: string;
@@ -33,8 +33,8 @@ export default function PaymentModal({
     items,
     totalPrice,
     deliveryFee,
-    discount,
-    discountAmount = 0,
+    discounts = [],
+    totalDiscountAmount = 0,
     customerData,
     submitting
 }: PaymentModalProps) {
@@ -43,8 +43,9 @@ export default function PaymentModal({
 
     if (!show) return null;
 
-    const subtotalAfterDiscount = totalPrice - discountAmount;
+    const subtotalAfterDiscount = totalPrice - totalDiscountAmount;
     const totalAmount = subtotalAfterDiscount + deliveryFee;
+    const totalDiscountPercentage = discounts.reduce((sum, discount) => sum + discount.percentage, 0);
 
     const handleSubmit = () => {
         if (selectedPaymentMethod && acceptedTerms) {
@@ -72,11 +73,24 @@ export default function PaymentModal({
                                 <span>Zwischensumme:</span>
                                 <span>{formatPrice(totalPrice)}</span>
                             </div>
-                            {discount && (
-                                <div className="flex justify-between text-green-600 font-medium">
-                                    <span>🎁 {discount.name} (-{discount.percentage}%):</span>
-                                    <span>-{formatPrice(discountAmount)}</span>
-                                </div>
+                            {discounts.length > 0 && (
+                                <>
+                                    {discounts.map((discount) => {
+                                        const discountAmount = (totalPrice * discount.percentage) / 100;
+                                        return (
+                                            <div key={discount.id} className="flex justify-between text-green-600 font-medium">
+                                                <span>🎁 {discount.name} (-{discount.percentage}%):</span>
+                                                <span>-{formatPrice(discountAmount)}</span>
+                                            </div>
+                                        );
+                                    })}
+                                    {discounts.length > 1 && (
+                                        <div className="flex justify-between text-green-700 font-bold border-t border-green-100 pt-2 mt-1">
+                                            <span>💰 Gesamt Rabatt ({totalDiscountPercentage}%):</span>
+                                            <span>-{formatPrice(totalDiscountAmount)}</span>
+                                        </div>
+                                    )}
+                                </>
                             )}
                             <div className="flex justify-between text-gray-600">
                                 <span>Liefergebühr:</span>

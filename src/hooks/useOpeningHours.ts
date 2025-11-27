@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { openingHoursService, type OpeningHour } from '../lib/supabase';
 
 interface OpeningPeriod {
     start: string;
@@ -7,19 +8,43 @@ interface OpeningPeriod {
 
 type OpeningHours = Record<number, OpeningPeriod[]>;
 
-// Opening hours definition (same as Vue project)
-const openingHours: OpeningHours = {
-    1: [], // Monday - Closed
-    2: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }], // Tuesday
-    3: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }], // Wednesday
-    4: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }], // Thursday
-    5: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }], // Friday
-    6: [{ start: '17:00', end: '22:15' }], // Saturday
-    0: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }]  // Sunday
-};
-
 export function useOpeningHours() {
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [openingHours, setOpeningHours] = useState<OpeningHours>({});
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Fetch opening hours from database
+        const fetchOpeningHours = async () => {
+            try {
+                const hours = await openingHoursService.getOpeningHours();
+                const hoursMap: OpeningHours = {};
+
+                // Group by day_of_week
+                hours.forEach((hour: OpeningHour) => {
+                    if (!hoursMap[hour.day_of_week]) {
+                        hoursMap[hour.day_of_week] = [];
+                    }
+
+                    // Skip if closed
+                    if (!hour.is_closed) {
+                        hoursMap[hour.day_of_week].push({
+                            start: hour.start_time.substring(0, 5), // HH:MM format
+                            end: hour.end_time.substring(0, 5)
+                        });
+                    }
+                });
+
+                setOpeningHours(hoursMap);
+            } catch (error) {
+                console.error('Error fetching opening hours:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOpeningHours();
+    }, []);
 
     useEffect(() => {
         // Update time every minute
@@ -31,6 +56,8 @@ export function useOpeningHours() {
     }, []);
 
     const isOpen = (): boolean => {
+        if (loading) return false;
+
         const day = currentTime.getDay();
         const hours = String(currentTime.getHours()).padStart(2, '0');
         const minutes = String(currentTime.getMinutes()).padStart(2, '0');
@@ -45,6 +72,8 @@ export function useOpeningHours() {
     };
 
     const statusMessage = (): string => {
+        if (loading) return 'Lädt...';
+
         const day = currentTime.getDay();
         const hours = String(currentTime.getHours()).padStart(2, '0');
         const minutes = String(currentTime.getMinutes()).padStart(2, '0');
@@ -73,5 +102,5 @@ export function useOpeningHours() {
         return 'Heute geschlossen';
     };
 
-    return { isOpen: isOpen(), statusMessage: statusMessage() };
+    return { isOpen: isOpen(), statusMessage: statusMessage(), loading, openingHours };
 }

@@ -18,6 +18,12 @@ export interface OrderEmailData {
     }>;
     subtotal: number;
     delivery_fee?: number;
+    discounts?: Array<{
+        name: string;
+        percentage: number;
+        amount: number;
+    }>;
+    discount_amount?: number;
     total_amount: number;
     payment_method: string;
     payment_status: string;

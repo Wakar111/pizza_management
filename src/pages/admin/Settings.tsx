@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { settingsService, supabase, type Discount } from '../../lib/supabase';
 import Toast from '../../components/Toast';
 import ConfirmModal from '../../components/ConfirmModal';
+import OpeningHoursManager from '../../components/OpeningHoursManager';
 
 interface SettingsData {
     min_order_value_free_delivery: number;
@@ -84,21 +85,24 @@ export default function Settings() {
     };
 
     const handleAddDiscount = async () => {
-        if (!discountForm.name || discountForm.percentage <= 0 || !discountForm.startDate || !discountForm.endDate) {
-            showNotification('Bitte alle Felder ausfüllen', 'error');
+        if (!discountForm.name || discountForm.percentage <= 0) {
+            showNotification('Bitte Name und Rabatt eingeben', 'error');
             return;
         }
 
-        if (new Date(discountForm.endDate) <= new Date(discountForm.startDate)) {
-            showNotification('Enddatum muss nach Startdatum liegen', 'error');
-            return;
+        // Only validate date order if both dates are provided
+        if (discountForm.startDate && discountForm.endDate) {
+            if (new Date(discountForm.endDate) <= new Date(discountForm.startDate)) {
+                showNotification('Enddatum muss nach Startdatum liegen', 'error');
+                return;
+            }
         }
 
         const discountData = {
             name: discountForm.name,
             percentage: discountForm.percentage,
-            startDate: new Date(discountForm.startDate).toISOString(),
-            endDate: new Date(discountForm.endDate).toISOString(),
+            startDate: discountForm.startDate ? new Date(discountForm.startDate).toISOString() : null,
+            endDate: discountForm.endDate ? new Date(discountForm.endDate).toISOString() : null,
             enabled: discountForm.enabled
         };
 
@@ -131,8 +135,8 @@ export default function Settings() {
         setDiscountForm({
             name: discount.name,
             percentage: discount.percentage,
-            startDate: discount.startDate.split('T')[0],
-            endDate: discount.endDate.split('T')[0],
+            startDate: discount.startDate ? discount.startDate.split('T')[0] : '',
+            endDate: discount.endDate ? discount.endDate.split('T')[0] : '',
             enabled: discount.enabled
         });
         setShowDiscountForm(true);
@@ -176,13 +180,22 @@ export default function Settings() {
     };
 
     const getDiscountStatus = (discount: Discount) => {
-        const now = new Date();
-        const start = new Date(discount.startDate);
-        const end = new Date(discount.endDate);
-
         if (!discount.enabled) return 'disabled';
-        if (now < start) return 'scheduled';
-        if (now > end) return 'expired';
+
+        const now = new Date();
+
+        // Check start date (null means active immediately)
+        if (discount.startDate) {
+            const start = new Date(discount.startDate);
+            if (now < start) return 'scheduled';
+        }
+
+        // Check end date (null means never expires)
+        if (discount.endDate) {
+            const end = new Date(discount.endDate);
+            if (now > end) return 'expired';
+        }
+
         return 'active';
     };
 
@@ -247,6 +260,178 @@ export default function Settings() {
                     </div>
                 ) : (
                     <div className="space-y-6">
+                        {/* Discount Management Section */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
+                            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+                                <h2 className="text-xl font-semibold text-gray-900">🎁 Rabatt-Aktionen</h2>
+                                <button
+                                    onClick={() => {
+                                        setEditingDiscount(null);
+                                        setDiscountForm({ name: '', percentage: 0, startDate: '', endDate: '', enabled: true });
+                                        setShowDiscountForm(!showDiscountForm);
+                                    }}
+                                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    {showDiscountForm ? 'Abbrechen' : '+ Neue Aktion'}
+                                </button>
+                            </div>
+
+                            {/* Add/Edit Form */}
+                            {showDiscountForm && (
+                                <div className="mt-6 p-6 bg-amber-50 rounded-lg border border-amber-100">
+                                    <h3 className="text-lg font-semibold mb-4 text-gray-900">
+                                        {editingDiscount ? 'Rabatt bearbeiten' : 'Neuer Rabatt'}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Aktionsname
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={discountForm.name}
+                                                onChange={(e) => setDiscountForm({ ...discountForm, name: e.target.value })}
+                                                placeholder="z.B. Black Friday Sale"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Rabatt (%)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                value={discountForm.percentage}
+                                                onChange={(e) => setDiscountForm({ ...discountForm, percentage: parseFloat(e.target.value) || 0 })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Aktiviert
+                                            </label>
+                                            <div className="flex items-center h-[42px]">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={discountForm.enabled}
+                                                    onChange={(e) => setDiscountForm({ ...discountForm, enabled: e.target.checked })}
+                                                    className="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Startdatum <span className="text-gray-400 font-normal text-xs">(Optional - leer = sofort aktiv)</span>
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={discountForm.startDate}
+                                                onChange={(e) => setDiscountForm({ ...discountForm, startDate: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Enddatum <span className="text-gray-400 font-normal text-xs">(Optional - leer = unbegrenzt)</span>
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={discountForm.endDate}
+                                                onChange={(e) => setDiscountForm({ ...discountForm, endDate: e.target.value })}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 flex justify-end">
+                                        <button
+                                            onClick={handleAddDiscount}
+                                            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                                        >
+                                            {editingDiscount ? 'Aktualisieren' : 'Hinzufügen'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Discounts Table */}
+                            <div className="mt-6">
+                                {discounts.length === 0 ? (
+                                    <p className="text-center text-gray-500 py-8">Keine Rabatt-Aktionen vorhanden</p>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead className="bg-gray-50 border-b border-gray-200">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Aktion</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Rabatt</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Zeitraum</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Aktionen</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200">
+                                                {discounts.map((discount) => {
+                                                    const status = getDiscountStatus(discount);
+                                                    const statusColors = {
+                                                        active: 'bg-green-100 text-green-800',
+                                                        scheduled: 'bg-blue-100 text-blue-800',
+                                                        expired: 'bg-gray-100 text-gray-600',
+                                                        disabled: 'bg-red-100 text-red-800'
+                                                    };
+                                                    const statusLabels = {
+                                                        active: '✅ Aktiv',
+                                                        scheduled: '📅 Geplant',
+                                                        expired: '⏰ Abgelaufen',
+                                                        disabled: '❌ Deaktiviert'
+                                                    };
+
+                                                    return (
+                                                        <tr key={discount.id} className="hover:bg-gray-50">
+                                                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">{discount.name}</td>
+                                                            <td className="px-4 py-3 text-sm text-gray-700">{discount.percentage}%</td>
+                                                            <td className="px-4 py-3 text-sm text-gray-700">
+                                                                {discount.startDate ? new Date(discount.startDate).toLocaleDateString('de-DE') : 'Sofort'} - {discount.endDate ? new Date(discount.endDate).toLocaleDateString('de-DE') : 'Unbegrenzt'}
+                                                            </td>
+                                                            <td className="px-4 py-3 text-sm">
+                                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status]}`}>
+                                                                    {statusLabels[status]}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-sm text-right space-x-2">
+                                                                <button
+                                                                    onClick={() => handleEditDiscount(discount)}
+                                                                    className="text-amber-600 hover:text-amber-800 font-medium"
+                                                                >
+                                                                    Bearbeiten
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteDiscount(discount.id)}
+                                                                    className="text-red-600 hover:text-red-800 font-medium"
+                                                                >
+                                                                    Löschen
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Opening Hours Section */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-100">
+                                🕐 Öffnungszeiten
+                            </h2>
+                            <OpeningHoursManager onSave={showNotification} />
+                        </div>
+
+                        {/* Delivery Conditions Section */}
                         <form onSubmit={saveSettings} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                             <h2 className="text-xl font-semibold mb-6 pb-4 border-b border-gray-100">Lieferbedingungen</h2>
 
@@ -365,169 +550,6 @@ export default function Settings() {
                                 </button>
                             </div>
                         </form>
-
-                        {/* Discount Management Section */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
-                            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
-                                <h2 className="text-xl font-semibold text-gray-900">🎁 Rabatt-Aktionen</h2>
-                                <button
-                                    onClick={() => {
-                                        setEditingDiscount(null);
-                                        setDiscountForm({ name: '', percentage: 0, startDate: '', endDate: '', enabled: true });
-                                        setShowDiscountForm(!showDiscountForm);
-                                    }}
-                                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
-                                >
-                                    {showDiscountForm ? 'Abbrechen' : '+ Neue Aktion'}
-                                </button>
-                            </div>
-
-                            {/* Add/Edit Form */}
-                            {showDiscountForm && (
-                                <div className="mt-6 p-6 bg-amber-50 rounded-lg border border-amber-100">
-                                    <h3 className="text-lg font-semibold mb-4 text-gray-900">
-                                        {editingDiscount ? 'Rabatt bearbeiten' : 'Neuer Rabatt'}
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Aktionsname
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={discountForm.name}
-                                                onChange={(e) => setDiscountForm({ ...discountForm, name: e.target.value })}
-                                                placeholder="z.B. Black Friday Sale"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Rabatt (%)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="100"
-                                                value={discountForm.percentage}
-                                                onChange={(e) => setDiscountForm({ ...discountForm, percentage: parseFloat(e.target.value) || 0 })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Aktiviert
-                                            </label>
-                                            <div className="flex items-center h-[42px]">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={discountForm.enabled}
-                                                    onChange={(e) => setDiscountForm({ ...discountForm, enabled: e.target.checked })}
-                                                    className="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Startdatum
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={discountForm.startDate}
-                                                onChange={(e) => setDiscountForm({ ...discountForm, startDate: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Enddatum
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={discountForm.endDate}
-                                                onChange={(e) => setDiscountForm({ ...discountForm, endDate: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="mt-4 flex justify-end">
-                                        <button
-                                            onClick={handleAddDiscount}
-                                            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
-                                        >
-                                            {editingDiscount ? 'Aktualisieren' : 'Hinzufügen'}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Discounts Table */}
-                            <div className="mt-6">
-                                {discounts.length === 0 ? (
-                                    <p className="text-center text-gray-500 py-8">Keine Rabatt-Aktionen vorhanden</p>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50 border-b border-gray-200">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Aktion</th>
-                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Rabatt</th>
-                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Zeitraum</th>
-                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
-                                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Aktionen</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-gray-200">
-                                                {discounts.map((discount) => {
-                                                    const status = getDiscountStatus(discount);
-                                                    const statusColors = {
-                                                        active: 'bg-green-100 text-green-800',
-                                                        scheduled: 'bg-blue-100 text-blue-800',
-                                                        expired: 'bg-gray-100 text-gray-600',
-                                                        disabled: 'bg-red-100 text-red-800'
-                                                    };
-                                                    const statusLabels = {
-                                                        active: '✅ Aktiv',
-                                                        scheduled: '📅 Geplant',
-                                                        expired: '⏰ Abgelaufen',
-                                                        disabled: '❌ Deaktiviert'
-                                                    };
-
-                                                    return (
-                                                        <tr key={discount.id} className="hover:bg-gray-50">
-                                                            <td className="px-4 py-3 text-sm text-gray-900 font-medium">{discount.name}</td>
-                                                            <td className="px-4 py-3 text-sm text-gray-700">{discount.percentage}%</td>
-                                                            <td className="px-4 py-3 text-sm text-gray-700">
-                                                                {new Date(discount.startDate).toLocaleDateString('de-DE')} - {new Date(discount.endDate).toLocaleDateString('de-DE')}
-                                                            </td>
-                                                            <td className="px-4 py-3 text-sm">
-                                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status]}`}>
-                                                                    {statusLabels[status]}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-4 py-3 text-sm text-right space-x-2">
-                                                                <button
-                                                                    onClick={() => handleEditDiscount(discount)}
-                                                                    className="text-amber-600 hover:text-amber-800 font-medium"
-                                                                >
-                                                                    Bearbeiten
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDeleteDiscount(discount.id)}
-                                                                    className="text-red-600 hover:text-red-800 font-medium"
-                                                                >
-                                                                    Löschen
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
                     </div>
                 )}
 

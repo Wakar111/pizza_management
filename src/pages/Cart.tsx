@@ -17,7 +17,7 @@ export default function Cart() {
     // Settings state
     const [minimumOrderValue, setMinimumOrderValue] = useState(20.00);
     const [deliveryFee, setDeliveryFee] = useState(2.50);
-    const [activeDiscount, setActiveDiscount] = useState<Discount | null>(null);
+    const [activeDiscounts, setActiveDiscounts] = useState<Discount[]>([]);
 
     // Modal state
     const [showCheckoutModal, setShowCheckoutModal] = useState(false);
@@ -41,16 +41,17 @@ export default function Cart() {
 
     const loadActiveDiscount = async () => {
         try {
-            const discount = await settingsService.getActiveDiscount();
-            setActiveDiscount(discount);
+            const discounts = await settingsService.getAllActiveDiscounts();
+            setActiveDiscounts(discounts);
         } catch (error) {
-            console.error('Error loading active discount:', error);
+            console.error('Error loading active discounts:', error);
         }
     };
 
-    // Calculate discount
-    const discountAmount = activeDiscount ? (totalPrice * activeDiscount.percentage) / 100 : 0;
-    const subtotalAfterDiscount = totalPrice - discountAmount;
+    // Calculate total discount by summing all active discount percentages
+    const totalDiscountPercentage = activeDiscounts.reduce((sum, discount) => sum + discount.percentage, 0);
+    const totalDiscountAmount = (totalPrice * totalDiscountPercentage) / 100;
+    const subtotalAfterDiscount = totalPrice - totalDiscountAmount;
     const actualDeliveryFee = subtotalAfterDiscount >= minimumOrderValue ? 0 : deliveryFee;
     const totalAmount = subtotalAfterDiscount + actualDeliveryFee;
     const remainingForFreeDelivery = Math.max(0, minimumOrderValue - subtotalAfterDiscount);
@@ -73,7 +74,7 @@ export default function Cart() {
         try {
             const fullAddress = `${customerData.street}, ${customerData.zip} ${customerData.city}`;
 
-            await orderService.createOrder({
+            const order = await orderService.createOrder({
                 customer_name: customerData.name,
                 customer_phone: customerData.phone,
                 customer_address: fullAddress,
@@ -81,6 +82,12 @@ export default function Cart() {
                 notes: customerData.notes,
                 subtotal: totalPrice,
                 delivery_fee: actualDeliveryFee,
+                discounts: activeDiscounts.map(discount => ({
+                    name: discount.name,
+                    percentage: discount.percentage,
+                    amount: (totalPrice * discount.percentage) / 100
+                })),
+                discount_amount: totalDiscountAmount,
                 total_amount: totalAmount,
                 payment_method: paymentMethod,
                 items: items
@@ -88,12 +95,14 @@ export default function Cart() {
 
             clearCart();
             setShowPaymentModal(false);
-            setToastMessage('Bestellung erfolgreich aufgegeben!');
-            setShowToast(true);
 
-            setTimeout(() => {
-                navigate('/');
-            }, 2000);
+            // Navigate to success page with order details
+            navigate('/order-success', {
+                state: {
+                    orderNumber: order?.id,
+                    customerEmail: customerData.email
+                }
+            });
         } catch (error) {
             console.error('Error submitting order:', error);
             setToastMessage('Fehler beim Aufgeben der Bestellung');
@@ -193,11 +202,24 @@ export default function Cart() {
                                 <span>Zwischensumme:</span>
                                 <span>{formatPrice(totalPrice)}</span>
                             </div>
-                            {activeDiscount && (
-                                <div className="flex justify-between text-green-600 font-medium">
-                                    <span>🎁 {activeDiscount.name} (-{activeDiscount.percentage}%):</span>
-                                    <span>-{formatPrice(discountAmount)}</span>
-                                </div>
+                            {activeDiscounts.length > 0 && (
+                                <>
+                                    {activeDiscounts.map((discount) => {
+                                        const discountAmount = (totalPrice * discount.percentage) / 100;
+                                        return (
+                                            <div key={discount.id} className="flex justify-between text-green-600 font-medium">
+                                                <span>🎁 {discount.name} (-{discount.percentage}%):</span>
+                                                <span>-{formatPrice(discountAmount)}</span>
+                                            </div>
+                                        );
+                                    })}
+                                    {activeDiscounts.length > 1 && (
+                                        <div className="flex justify-between text-green-700 font-bold border-t border-green-100 pt-2">
+                                            <span>💰 Gesamt Rabatt ({totalDiscountPercentage}%):</span>
+                                            <span>-{formatPrice(totalDiscountAmount)}</span>
+                                        </div>
+                                    )}
+                                </>
                             )}
                             <div className="flex justify-between text-gray-600">
                                 <span>Liefergebühr:</span>
@@ -264,8 +286,8 @@ export default function Cart() {
                 items={items}
                 totalPrice={totalPrice}
                 deliveryFee={actualDeliveryFee}
-                discount={activeDiscount}
-                discountAmount={discountAmount}
+                discounts={activeDiscounts}
+                totalDiscountAmount={totalDiscountAmount}
                 customerData={customerData || {}}
                 submitting={submitting}
             />

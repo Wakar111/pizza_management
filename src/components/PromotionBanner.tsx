@@ -29,9 +29,20 @@ export default function PromotionBanner() {
             // Filter for active promotions
             const active = allPromotions.filter(promo => {
                 if (!promo.enabled) return false;
-                const start = new Date(promo.startDate);
-                const end = new Date(promo.endDate);
-                return now >= start && now <= end;
+
+                // Check start date (null means active immediately)
+                if (promo.startDate) {
+                    const start = new Date(promo.startDate);
+                    if (now < start) return false;
+                }
+
+                // Check end date (null means never expires)
+                if (promo.endDate) {
+                    const end = new Date(promo.endDate);
+                    if (now > end) return false;
+                }
+
+                return true;
             });
 
             setActivePromotions(active);
@@ -43,12 +54,19 @@ export default function PromotionBanner() {
     if (activePromotions.length === 0) return null;
 
     const currentPromo = activePromotions[currentIndex];
-    const formatDate = (dateStr: string) => {
+    const formatDate = (dateStr: string | null) => {
+        if (!dateStr) return null;
         return new Date(dateStr).toLocaleDateString('de-DE', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
         });
+    };
+
+    const getDateRangeText = () => {
+        const startText = formatDate(currentPromo.startDate) || 'Sofort';
+        const endText = formatDate(currentPromo.endDate) || 'Unbegrenzt';
+        return `🎁 ${startText} - ${endText}`;
     };
 
     return (
@@ -72,7 +90,7 @@ export default function PromotionBanner() {
                         <div className="hidden md:block">
                             <h3 className="text-2xl font-bold drop-shadow-lg">{currentPromo.name}</h3>
                             <p className="text-sm opacity-90 font-medium">
-                                🎁 {formatDate(currentPromo.startDate)} - {formatDate(currentPromo.endDate)}
+                                {getDateRangeText()}
                             </p>
                         </div>
                     </div>
@@ -92,7 +110,7 @@ export default function PromotionBanner() {
                 <div className="md:hidden mt-3 text-center">
                     <h3 className="text-xl font-bold drop-shadow-lg">{currentPromo.name}</h3>
                     <p className="text-xs opacity-90 font-medium mt-1">
-                        🎁 {formatDate(currentPromo.startDate)} - {formatDate(currentPromo.endDate)}
+                        {getDateRangeText()}
                     </p>
                 </div>
             </div>

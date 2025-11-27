@@ -28,7 +28,7 @@ export default function Layout() {
                         {/* Logo */}
                         <Link to="/" className="flex items-center space-x-3 group">
                             <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                                <img src="/pizza-logo.jpg" alt="Pizza Logo" className="w-full h-full object-contain" />
+                                <img src="/pizza-logo.png" alt="Pizza Logo" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">

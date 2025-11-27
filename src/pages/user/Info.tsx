@@ -1,59 +1,9 @@
 
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-// Opening hours definition
-const openingHours: Record<number, { start: string; end: string }[]> = {
-    1: [], // Montag - Geschlossen
-    2: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }], // Dienstag
-    3: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }], // Mittwoch
-    4: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }], // Donnerstag
-    5: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }], // Freitag
-    6: [{ start: '17:00', end: '22:15' }], // Samstag
-    0: [{ start: '11:00', end: '14:15' }, { start: '17:00', end: '23:00' }]  // Sonntag
-};
+import { useOpeningHours } from '../../hooks/useOpeningHours';
 
 export default function UserInfo() {
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 60000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const getStatus = () => {
-        const now = currentTime;
-        const day = now.getDay();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const currentTimeStr = `${hours}:${minutes}`;
-
-        const todayHours = openingHours[day];
-
-        if (!todayHours || todayHours.length === 0) {
-            return { isOpen: false, message: 'Heute geschlossen' };
-        }
-
-        // Check if currently open
-        for (const period of todayHours) {
-            if (currentTimeStr >= period.start && currentTimeStr <= period.end) {
-                return { isOpen: true, message: `Geöffnet bis ${period.end} Uhr` };
-            }
-        }
-
-        // Check if will open later today
-        for (const period of todayHours) {
-            if (currentTimeStr < period.start) {
-                return { isOpen: false, message: `Geschlossen - Öffnet um ${period.start} Uhr` };
-            }
-        }
-
-        return { isOpen: false, message: 'Heute geschlossen' };
-    };
-
-    const { isOpen, message: statusMessage } = getStatus();
+    const { isOpen, statusMessage, openingHours, loading } = useOpeningHours();
 
     return (
         <div className="info-page">
@@ -180,48 +130,52 @@ export default function UserInfo() {
                             </div>
 
                             <div className="space-y-4">
-                                {[
-                                    { day: 'Montag', hours: openingHours[1] },
-                                    { day: 'Dienstag', hours: openingHours[2] },
-                                    { day: 'Mittwoch', hours: openingHours[3] },
-                                    { day: 'Donnerstag', hours: openingHours[4] },
-                                    { day: 'Freitag', hours: openingHours[5] },
-                                    { day: 'Samstag', hours: openingHours[6] },
-                                    { day: 'Sonntag', hours: openingHours[0] },
-                                ].map((schedule, index) => (
-                                    <div key={index} className="py-3 border-b border-gray-200">
-                                        <div className="font-semibold text-gray-900 mb-2">{schedule.day}</div>
-                                        <div className="text-sm text-gray-600 space-y-1">
-                                            {schedule.hours.length > 0 ? (
-                                                <>
-                                                    <div className="flex justify-between">
-                                                        <span>Lieferung:</span>
-                                                        <span className="font-medium">
-                                                            {schedule.hours.map(h => `${h.start} - ${h.end}`).join(', ')}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span>Abholung:</span>
-                                                        <span className="font-medium">
-                                                            {schedule.hours.map(h => `${h.start} - ${h.end}`).join(', ')}
-                                                        </span>
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <div className="flex justify-between">
-                                                        <span>Lieferung:</span>
-                                                        <span className="font-medium">Geschlossen</span>
-                                                    </div>
-                                                    <div className="flex justify-between">
-                                                        <span>Abholung:</span>
-                                                        <span className="font-medium">Geschlossen</span>
-                                                    </div>
-                                                </>
-                                            )}
+                                {loading ? (
+                                    <div className="text-center py-8 text-gray-500">Lädt Öffnungszeiten...</div>
+                                ) : (
+                                    [
+                                        { day: 'Montag', hours: openingHours[1] || [] },
+                                        { day: 'Dienstag', hours: openingHours[2] || [] },
+                                        { day: 'Mittwoch', hours: openingHours[3] || [] },
+                                        { day: 'Donnerstag', hours: openingHours[4] || [] },
+                                        { day: 'Freitag', hours: openingHours[5] || [] },
+                                        { day: 'Samstag', hours: openingHours[6] || [] },
+                                        { day: 'Sonntag', hours: openingHours[0] || [] },
+                                    ].map((schedule, index) => (
+                                        <div key={index} className="py-3 border-b border-gray-200">
+                                            <div className="font-semibold text-gray-900 mb-2">{schedule.day}</div>
+                                            <div className="text-sm text-gray-600 space-y-1">
+                                                {schedule.hours.length > 0 ? (
+                                                    <>
+                                                        <div className="flex justify-between">
+                                                            <span>Lieferung:</span>
+                                                            <span className="font-medium">
+                                                                {schedule.hours.map(h => `${h.start} - ${h.end}`).join(', ')}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span>Abholung:</span>
+                                                            <span className="font-medium">
+                                                                {schedule.hours.map(h => `${h.start} - ${h.end}`).join(', ')}
+                                                            </span>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="flex justify-between">
+                                                            <span>Lieferung:</span>
+                                                            <span className="font-medium">Geschlossen</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span>Abholung:</span>
+                                                            <span className="font-medium">Geschlossen</span>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                )}
 
                                 <div className={`mt-6 p-4 rounded-lg border ${isOpen ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                                     <div className="flex items-center">

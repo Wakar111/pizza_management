@@ -16,6 +16,7 @@ import UserInfo from './pages/user/Info';
 import AGB from './pages/user/AGB';
 import Datenschutz from './pages/user/Datenschutz';
 import Impressum from './pages/user/Impressum';
+import OrderSuccess from './pages/OrderSuccess';
 import './index.css';
 
 // Protected Route Component
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
         <Route path="cart" element={<Cart />} />
+        <Route path="order-success" element={<OrderSuccess />} />
         <Route path="login" element={<Login />} />
 
         {/* User Routes */}
