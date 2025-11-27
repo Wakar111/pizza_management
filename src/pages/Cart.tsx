@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { orderService, settingsService, type Discount } from '../lib/supabase';
 import { formatPrice } from '../utils/format';
+import { useOpeningHours } from '../hooks/useOpeningHours';
 import Toast from '../components/Toast';
 import CheckoutModal from '../components/CheckoutModal';
 import PaymentModal from '../components/PaymentModal';
@@ -10,6 +11,7 @@ import PaymentModal from '../components/PaymentModal';
 export default function Cart() {
     const { items, totalPrice, updateQuantity, removeItem, clearCart } = useCart();
     const navigate = useNavigate();
+    const { isOpen, statusMessage, loading: openingHoursLoading } = useOpeningHours();
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -258,11 +260,27 @@ export default function Cart() {
                             )}
                         </div>
 
+                        {/* Opening Status Indicator - Only show when closed */}
+                        {!openingHoursLoading && !isOpen && (
+                            <div className="mb-4 p-4 rounded-lg border bg-red-50 border-red-200">
+                                <div className="flex items-center">
+                                    <svg className="w-5 h-5 text-red-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
+                                    </svg>
+                                    <span className="font-semibold text-red-800">{statusMessage}</span>
+                                </div>
+                            </div>
+                        )}
+
                         <button
                             onClick={handleCheckoutClick}
-                            className="w-full py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-[1.02] shadow-lg bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
+                            disabled={!isOpen || openingHoursLoading}
+                            className={`w-full py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${!isOpen || openingHoursLoading
+                                ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                                : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 transform hover:scale-[1.02]'
+                                } text-white`}
                         >
-                            Zur Kasse
+                            {openingHoursLoading ? 'Lädt...' : !isOpen ? 'Restaurant geschlossen' : 'Zur Kasse'}
                         </button>
                     </div>
                 </div>

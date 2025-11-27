@@ -8,6 +8,7 @@ import SizeSelectionModal from '../components/SizeSelectionModal';
 import ExtrasModal from '../components/ExtrasModal';
 import Toast from '../components/Toast';
 import PromotionBanner from '../components/PromotionBanner';
+import WetPaintButton from '../components/WetPaintButton';
 import type { MenuItem, Size } from '../types';
 
 export default function Home() {
@@ -98,40 +99,51 @@ export default function Home() {
                     style={{ backgroundImage: 'linear-gradient(45deg, #f97316 0%, #ea580c 25%, #c2410c 50%, #9a3412 75%, #7c2d12 100%)' }}
                 ></div>
 
-                <div className="relative z-10 max-w-6xl mx-auto px-4 text-center text-white">
-                    {/* Opening Status Badge - Only show when closed */}
-                    {!openingHoursLoading && !isOpen && (
-                        <Link
-                            to="/user/info#opening-hours"
-                            className="mb-6 inline-flex items-center px-6 py-3 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-105 cursor-pointer bg-red-500/90 hover:bg-red-600/90"
-                        >
-                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                            </svg>
-                            <span className="font-semibold text-white">{statusMessage}</span>
-                        </Link>
-                    )}
+                <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
+                    <div className="grid md:grid-cols-2 gap-8 items-center">
+                        {/* Left side: Text content */}
+                        <div className="text-white">
+                            {/* Opening Status Badge - Only show when closed */}
+                            {!openingHoursLoading && !isOpen && (
+                                <Link
+                                    to="/user/info#opening-hours"
+                                    className="mb-6 inline-flex items-center px-6 py-3 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-105 cursor-pointer bg-red-500/90 hover:bg-red-600/90"
+                                >
+                                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                    </svg>
+                                    <span className="font-semibold text-white">{statusMessage}</span>
+                                </Link>
+                            )}
 
-                    <div className="mb-8">
-                        <h1 className="text-5xl md:text-6xl font-bold mb-4 leading-tight">
-                            Restaurant
-                            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-orange-200">
-                                Hot Pizza
-                            </span>
-                        </h1>
-                        <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto leading-relaxed">
-                            Erleben Sie authentische Küche mit den frischesten Zutaten,
-                            meisterhaft zubereitet und mit Leidenschaft serviert
-                        </p>
-                    </div>
+                            <div className="mb-8">
+                                <h1 className="text-5xl md:text-6xl font-bold mb-4 leading-tight">
+                                    Restaurant
+                                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-orange-200">
+                                        Hot Pizza
+                                    </span>
+                                </h1>
+                                <p className="text-lg md:text-xl mb-8 max-w-2xl leading-relaxed">
+                                    Erleben Sie authentische Küche mit den frischesten Zutaten,
+                                    meisterhaft zubereitet und mit Leidenschaft serviert
+                                </p>
+                            </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <Link
-                            to="/menu"
-                            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl"
-                        >
-                            Jetzt bestellen
-                        </Link>
+                            <div className="flex flex-col sm:flex-row gap-4 items-start">
+                                <WetPaintButton to="/menu">
+                                    Jetzt bestellen
+                                </WetPaintButton>
+                            </div>
+                        </div>
+
+                        {/* Right side: Pizza image */}
+                        <div className="hidden md:flex justify-center items-center">
+                            <img
+                                src="/pizza2.png"
+                                alt="Delicious Pizza"
+                                className="w-full max-w-md h-auto object-contain drop-shadow-2xl transform hover:scale-105 transition-transform duration-300"
+                            />
+                        </div>
                     </div>
                 </div>
             </section>
