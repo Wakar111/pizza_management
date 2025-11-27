@@ -697,6 +697,26 @@ export const stammkundenService = {
         return data || [];
     },
 
+    async searchStammkundenByPhone(query: string) {
+        const normalizedQuery = query.replace(/\s+/g, '').toLowerCase();
+
+        // Get all customers and filter client-side to handle spaces
+        const { data, error } = await supabase
+            .from('stammkunden')
+            .select('*')
+            .order('name');
+
+        if (error) throw error;
+
+        // Filter by normalizing phone numbers (removing spaces) for comparison
+        const filtered = (data || []).filter((customer: any) => {
+            const normalizedPhone = customer.phone.replace(/\s+/g, '').toLowerCase();
+            return normalizedPhone.startsWith(normalizedQuery);
+        });
+
+        return filtered;
+    },
+
     async createStammkunde(stammkundeData: any) {
         const { data, error } = await supabase
             .from('stammkunden')

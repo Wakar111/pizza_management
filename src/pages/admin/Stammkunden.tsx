@@ -45,30 +45,41 @@ export default function Stammkunden() {
         setShowToast(true);
     };
 
-    const loadCustomers = async () => {
+    const searchCustomers = async (query: string) => {
         try {
             setLoading(true);
-            const data = await stammkundenService.getAllStammkunden();
+            // If query is empty, don't load anything
+            if (!query.trim()) {
+                setCustomers([]);
+                return;
+            }
+            // Search by phone number in database
+            const data = await stammkundenService.searchStammkundenByPhone(query);
             setCustomers(data);
         } catch (error: any) {
-            console.error('[AdminStammkunden] Error loading customers:', error);
-            showNotification('Fehler beim Laden der Stammkunden: ' + error.message, 'error');
+            console.error('[AdminStammkunden] Error searching customers:', error);
+            showNotification('Fehler beim Suchen der Stammkunden: ' + error.message, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     const filteredCustomers = useMemo(() => {
-        if (!searchQuery) return customers;
+        if (!searchQuery.trim()) return customers;
         const query = searchQuery.toLowerCase();
-        return customers.filter(c =>
-            c.name.toLowerCase().includes(query) ||
-            c.phone.includes(query) ||
-            c.address.toLowerCase().includes(query)
-        );
+        const normalizedQuery = query.replace(/\s+/g, '');
+
+        // Additional client-side filtering for name and address
+        // Phone numbers are normalized (spaces removed) for comparison
+        return customers.filter(c => {
+            const normalizedPhone = c.phone.replace(/\s+/g, '').toLowerCase();
+            return c.name.toLowerCase().includes(query) ||
+                normalizedPhone.includes(normalizedQuery) ||
+                c.address.toLowerCase().includes(query);
+        });
     }, [customers, searchQuery]);
 
-    const handleOpenModal = (customer?: Stammkunde) => {
+    const handleOpenModal = (customer?: Stammkunde, prefillPhone?: string) => {
         if (customer) {
             setEditingCustomer(customer);
             setFormData({
@@ -82,7 +93,7 @@ export default function Stammkunden() {
             setEditingCustomer(null);
             setFormData({
                 name: '',
-                phone: '',
+                phone: prefillPhone || '',
                 address: '',
                 email: '',
                 notes: ''
@@ -165,9 +176,14 @@ export default function Stammkunden() {
         }
     };
 
+    // Debounced search effect
     useEffect(() => {
-        loadCustomers();
-    }, []);
+        const timer = setTimeout(() => {
+            searchCustomers(searchQuery);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     return (
         <div className="admin-stammkunden-page">
@@ -178,7 +194,7 @@ export default function Stammkunden() {
                         <p className="text-gray-600">Verwalten Sie Ihre Kundenkartei.</p>
                     </div>
                     <button
-                        onClick={() => handleOpenModal()}
+                        onClick={() => handleOpenModal(undefined, searchQuery)}
                         className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -210,16 +226,25 @@ export default function Stammkunden() {
                 {loading ? (
                     <div className="text-center py-12">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
-                        <p className="mt-4 text-gray-600">Lade Stammkunden...</p>
+                        <p className="mt-4 text-gray-600">Suche...</p>
+                    </div>
+                ) : !searchQuery.trim() ? (
+                    <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div className="text-6xl mb-4">🔍</div>
+                        <h3 className="text-xl font-medium text-gray-900">Stammkunden durchsuchen</h3>
+                        <p className="text-gray-500 mt-2">
+                            Geben Sie eine Telefonnummer ein, um nach Stammkunden zu suchen.
+                        </p>
+                        <p className="text-gray-400 text-sm mt-1">
+                            Beispiel: 0176 findet alle Nummern, die mit 0176 beginnen
+                        </p>
                     </div>
                 ) : filteredCustomers.length === 0 ? (
                     <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
-                        <div className="text-6xl mb-4">👥</div>
+                        <div className="text-6xl mb-4">😕</div>
                         <h3 className="text-xl font-medium text-gray-900">Keine Stammkunden gefunden</h3>
                         <p className="text-gray-500 mt-2">
-                            {searchQuery
-                                ? `Keine Ergebnisse für "${searchQuery}".`
-                                : 'Legen Sie Ihren ersten Stammkunden an.'}
+                            Keine Ergebnisse für "{searchQuery}".
                         </p>
                     </div>
                 ) : (

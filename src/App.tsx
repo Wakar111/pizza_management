@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import Layout from './components/Layout';
@@ -19,10 +19,25 @@ import Impressum from './pages/user/Impressum';
 import OrderSuccess from './pages/OrderSuccess';
 import './index.css';
 
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth'
+    });
+  }, [pathname]);
+
+  return null;
+}
+
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isAdmin, loading } = useAuth();
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -92,6 +107,7 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <AppRoutes />
         </BrowserRouter>
       </CartProvider>

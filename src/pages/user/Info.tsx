@@ -1,9 +1,23 @@
 
 import { Link } from 'react-router-dom';
 import { useOpeningHours } from '../../hooks/useOpeningHours';
+import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default function UserInfo() {
     const { isOpen, statusMessage, openingHours, loading } = useOpeningHours();
+
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.hash) {
+            const id = location.hash.replace('#', '');
+            const element = document.getElementById(id);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    }, [location]);
 
     return (
         <div className="info-page">
