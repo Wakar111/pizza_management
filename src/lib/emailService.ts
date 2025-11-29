@@ -28,6 +28,7 @@ export interface OrderEmailData {
     payment_method: string;
     payment_status: string;
     notes?: string;
+    estimated_delivery_time?: string;
 }
 
 // Send order emails via backend

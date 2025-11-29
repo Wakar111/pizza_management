@@ -38,6 +38,7 @@ export default function Orders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('all');
+    const [dateFilter, setDateFilter] = useState('today');
 
     // Confirm Dialog State
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -68,9 +69,37 @@ export default function Orders() {
     };
 
     const filteredOrders = useMemo(() => {
-        if (filterStatus === 'all') return orders;
-        return orders.filter(order => order.status === filterStatus);
-    }, [orders, filterStatus]);
+        let filtered = orders;
+
+        // Filter by status
+        if (filterStatus !== 'all') {
+            filtered = filtered.filter(order => order.status === filterStatus);
+        }
+
+        // Filter by date
+        if (dateFilter !== 'all') {
+            const now = new Date();
+            filtered = filtered.filter(order => {
+                const orderDate = new Date(order.created_at);
+
+                if (dateFilter === 'today') {
+                    return orderDate.toDateString() === now.toDateString();
+                } else if (dateFilter === 'week') {
+                    const weekAgo = new Date(now);
+                    weekAgo.setDate(now.getDate() - 7);
+                    return orderDate >= weekAgo;
+                } else if (dateFilter === 'month') {
+                    const monthAgo = new Date(now);
+                    monthAgo.setMonth(now.getMonth() - 1);
+                    return orderDate >= monthAgo;
+                }
+
+                return true;
+            });
+        }
+
+        return filtered;
+    }, [orders, filterStatus, dateFilter]);
 
     const updateStatus = async (orderId: string, newStatus: string) => {
         try {
@@ -162,30 +191,48 @@ export default function Orders() {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex overflow-x-auto pb-4 mb-6 gap-2">
-                    {[
-                        { id: 'all', label: 'Alle' },
-                        { id: 'pending', label: 'Wartend' },
-                        { id: 'preparing', label: 'In Zubereitung' },
-                        { id: 'ready', label: 'Bereit' },
-                        { id: 'delivered', label: 'Geliefert' }
-                    ].map(tab => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setFilterStatus(tab.id)}
-                            className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${filterStatus === tab.id
-                                ? 'bg-primary-600 text-white'
-                                : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
-                                }`}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    {/* Status Filter Tabs */}
+                    <div className="flex overflow-x-auto pb-2 sm:pb-0 gap-2">
+                        {[
+                            { id: 'all', label: 'Alle' },
+                            { id: 'pending', label: 'Wartend' },
+                            { id: 'preparing', label: 'In Zubereitung' },
+                            { id: 'ready', label: 'Bereit' },
+                            { id: 'delivered', label: 'Geliefert' }
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setFilterStatus(tab.id)}
+                                className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${filterStatus === tab.id
+                                    ? 'bg-primary-600 text-white'
+                                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                                    }`}
+                            >
+                                {tab.label}
+                                <span className="ml-2 text-xs opacity-75 bg-black bg-opacity-10 px-1.5 py-0.5 rounded-full">
+                                    {tab.id === 'all'
+                                        ? orders.length
+                                        : orders.filter(o => o.status === tab.id).length}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Date Range Filter */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600 font-medium whitespace-nowrap">Zeitraum:</span>
+                        <select
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                         >
-                            {tab.label}
-                            <span className="ml-2 text-xs opacity-75 bg-black bg-opacity-10 px-1.5 py-0.5 rounded-full">
-                                {tab.id === 'all'
-                                    ? orders.length
-                                    : orders.filter(o => o.status === tab.id).length}
-                            </span>
-                        </button>
-                    ))}
+                            <option value="all">Alle</option>
+                            <option value="today">Heute</option>
+                            <option value="week">Diese Woche</option>
+                            <option value="month">Dieser Monat</option>
+                        </select>
+                    </div>
                 </div>
 
                 {/* Orders List */}
@@ -342,6 +389,12 @@ export default function Orders() {
                                                 <div className="flex justify-between text-sm text-gray-600">
                                                     <span>Liefergebühr</span>
                                                     <span>€{(order.delivery_fee || 0).toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-sm text-gray-600">
+                                                    <span>Zahlungsart</span>
+                                                    <span className="font-medium">
+                                                        {order.payment_method === 'cash' ? 'Barzahlung' : 'Online Bezahlt'}
+                                                    </span>
                                                 </div>
                                                 <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">
                                                     <span>Gesamtbetrag</span>

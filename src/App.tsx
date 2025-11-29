@@ -12,6 +12,7 @@ import AdminMenu from './pages/admin/Menu';
 import AdminOrders from './pages/admin/Orders';
 import AdminSettings from './pages/admin/Settings';
 import AdminStammkunden from './pages/admin/Stammkunden';
+import AdminAbrechnungen from './pages/admin/Abrechnungen';
 import UserInfo from './pages/user/Info';
 import AGB from './pages/user/AGB';
 import Datenschutz from './pages/user/Datenschutz';
@@ -95,6 +96,11 @@ function AppRoutes() {
         <Route path="admin/stammkunden" element={
           <ProtectedRoute>
             <AdminStammkunden />
+          </ProtectedRoute>
+        } />
+        <Route path="admin/abrechnungen" element={
+          <ProtectedRoute>
+            <AdminAbrechnungen />
           </ProtectedRoute>
         } />
       </Route>

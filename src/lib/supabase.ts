@@ -335,6 +335,17 @@ export const orderService = {
                 if (extrasError) throw extrasError;
             }
 
+            // Fetch estimated delivery time from settings
+            let estimatedDeliveryTime = '40-50';
+            try {
+                const settings = await settingsService.getSettings();
+                if (settings.estimated_delivery_time) {
+                    estimatedDeliveryTime = settings.estimated_delivery_time;
+                }
+            } catch (error) {
+                console.error('[orderService] Error fetching delivery time:', error);
+            }
+
             // Send confirmation emails (non-blocking)
             console.log('[orderService] Sending order confirmation emails...');
             sendOrderEmails({
@@ -351,7 +362,8 @@ export const orderService = {
                 total_amount: orderData.total_amount,
                 payment_method: orderData.payment_method || 'cash',
                 payment_status: orderData.payment_status || 'pending',
-                notes: orderData.notes
+                notes: orderData.notes,
+                estimated_delivery_time: estimatedDeliveryTime
             }).catch(emailError => {
                 console.error('[orderService] Email sending failed (non-critical):', emailError);
                 // Don't throw - order was created successfully
@@ -435,18 +447,21 @@ export const settingsService = {
         try {
             const { data: { user } } = await supabase.auth.getUser();
 
-            // Update each setting individually
+            // Update/Insert each setting individually using upsert
             const updatePromises = Object.entries(updates).map(async ([key, value]) => {
                 // Skip metadata fields
                 if (key === 'updated_by' || key === 'updated_at') return;
 
+                // Use upsert to insert if not exists, update if exists
                 const { data, error } = await supabase
                     .from('restaurant_settings')
-                    .update({
+                    .upsert({
+                        setting_key: key,
                         setting_value: String(value),
                         updated_by: user?.id
+                    }, {
+                        onConflict: 'setting_key'
                     })
-                    .eq('setting_key', key)
                     .select();
 
                 if (error) throw error;

@@ -1,18 +1,34 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { settingsService } from '../lib/supabase';
 
 export default function OrderSuccess() {
     const navigate = useNavigate();
     const location = useLocation();
     const orderNumber = location.state?.orderNumber;
     const customerEmail = location.state?.customerEmail;
+    const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState('40-50');
 
     useEffect(() => {
         // Redirect to home if accessed directly without order data
         if (!orderNumber) {
             navigate('/');
         }
+
+        // Load estimated delivery time
+        loadEstimatedDeliveryTime();
     }, [orderNumber, navigate]);
+
+    const loadEstimatedDeliveryTime = async () => {
+        try {
+            const settings = await settingsService.getSettings();
+            if (settings.estimated_delivery_time) {
+                setEstimatedDeliveryTime(settings.estimated_delivery_time);
+            }
+        } catch (error) {
+            console.error('Error loading delivery time:', error);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center px-4 py-16">
@@ -100,7 +116,7 @@ export default function OrderSuccess() {
                             </div>
                             <div>
                                 <p className="font-medium text-gray-900">Lieferung</p>
-                                <p className="text-sm text-gray-600">Ihr Essen ist bald bei Ihnen</p>
+                                <p className="text-sm text-gray-600">Ihr Essen ist in ca. {estimatedDeliveryTime} Minuten bei Ihnen</p>
                             </div>
                         </div>
                     </div>

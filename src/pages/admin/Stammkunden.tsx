@@ -235,9 +235,6 @@ export default function Stammkunden() {
                         <p className="text-gray-500 mt-2">
                             Geben Sie eine Telefonnummer ein, um nach Stammkunden zu suchen.
                         </p>
-                        <p className="text-gray-400 text-sm mt-1">
-                            Beispiel: 0176 findet alle Nummern, die mit 0176 beginnen
-                        </p>
                     </div>
                 ) : filteredCustomers.length === 0 ? (
                     <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-gray-100">
