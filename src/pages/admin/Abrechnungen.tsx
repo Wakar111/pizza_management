@@ -192,7 +192,6 @@ export default function Abrechnungen() {
 
         // Add total row at the end
         const totalAmount = filteredOrders.reduce((sum, order) => sum + order.total_amount, 0);
-        // Summe should stand on the right side before the total amount
         const totalRow = ['', '', '', '', '', '', '', '', '', '', 'Summe', totalAmount.toFixed(2) + ' €'];
         const MwstRow = ['', '', '', '', '', '', '', '', '', '', '', 'Preise inkl. 19% MwSt.'];
         rows.push(totalRow);

@@ -74,14 +74,14 @@ export default function Layout() {
                                         to="/admin/stammkunden"
                                         className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 relative group"
                                     >
-                                        Stammkunden
+                                        👥
                                         <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600 group-hover:w-full transition-all duration-300"></span>
                                     </Link>
                                     <Link
                                         to="/admin/abrechnungen"
                                         className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 relative group"
                                     >
-                                        Abrechnung
+                                        📊
                                         <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600 group-hover:w-full transition-all duration-300"></span>
                                     </Link>
                                 </>
@@ -221,14 +221,14 @@ export default function Layout() {
                                             onClick={() => setMobileMenuOpen(false)}
                                             className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 px-4 py-3 rounded-lg font-medium transition-colors"
                                         >
-                                            Stammkunden
+                                            Stammkunden 👥
                                         </Link>
                                         <Link
                                             to="/admin/abrechnungen"
                                             onClick={() => setMobileMenuOpen(false)}
                                             className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 px-4 py-3 rounded-lg font-medium transition-colors"
                                         >
-                                            Abrechnung
+                                            Abrechnungen 📊
                                         </Link>
                                     </>
                                 ) : (
