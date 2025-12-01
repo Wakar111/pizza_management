@@ -284,6 +284,20 @@ export default function Layout() {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                         <p className="text-gray-300">© 2024 Restaurant Pizza. Alle Rechte vorbehalten.</p>
+
+                        {/* Developer Credit */}
+                        <div className="text-gray-400 text-sm">
+                            Developed by{' '}
+                            <a
+                                href="https://innovativ-tech.de/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-orange-400 hover:text-orange-300 transition-colors font-medium"
+                            >
+                                Innovative-Tech
+                            </a>
+                        </div>
+
                         <div className="flex space-x-6">
                             <Link to="/user/agb" className="text-gray-300 hover:text-white transition-colors">
                                 AGB
