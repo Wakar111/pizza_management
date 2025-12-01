@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { formatPrice } from '../utils/format';
 import type { CartItem } from '../types';
 import type { Discount } from '../lib/supabase';
@@ -27,7 +27,6 @@ interface PaymentModalProps {
 
 export default function PaymentModal({
     show,
-    onClose,
     onBack,
     onSubmit,
     items,

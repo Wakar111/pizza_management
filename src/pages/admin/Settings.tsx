@@ -167,20 +167,6 @@ export default function Settings() {
         }
     };
 
-    const handleToggleDiscount = async (discountId: string) => {
-        try {
-            const discount = discounts.find(d => d.id === discountId);
-            if (!discount) return;
-
-            await settingsService.updateDiscount(discountId, { enabled: !discount.enabled });
-            showNotification('Rabatt aktualisiert', 'success');
-            // Refresh the list
-            await loadDiscounts();
-        } catch (error) {
-            console.error('Error toggling discount:', error);
-            showNotification('Fehler beim Aktualisieren', 'error');
-        }
-    };
 
     const getDiscountStatus = (discount: Discount) => {
         if (!discount.enabled) return 'disabled';

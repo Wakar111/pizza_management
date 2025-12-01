@@ -21,4 +21,10 @@ export default defineConfig({
     port: 3001,
     strictPort: true,
   },
+  build: {
+    minify: true,
+  },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
 });
