@@ -149,12 +149,15 @@ export default function PaymentModal({
                             </div>
                         </div>
 
-                        {/* PayPal Payment */}
+                        {/* PayPal Payment - Controlled by env variable */}
                         <div
-                            onClick={() => setSelectedPaymentMethod('paypal')}
-                            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === 'paypal'
-                                ? 'border-blue-600 bg-blue-50'
-                                : 'border-gray-200 hover:border-blue-300'
+                            onClick={() => import.meta.env.VITE_ENABLE_PAYPAL === 'true' && setSelectedPaymentMethod('paypal')}
+                            className={`p-4 border-2 rounded-lg transition-all ${import.meta.env.VITE_ENABLE_PAYPAL !== 'true'
+                                    ? 'opacity-50 cursor-not-allowed border-gray-300 bg-gray-100'
+                                    : `cursor-pointer ${selectedPaymentMethod === 'paypal'
+                                        ? 'border-blue-600 bg-blue-50'
+                                        : 'border-gray-200 hover:border-blue-300'
+                                    }`
                                 }`}
                         >
                             <div className="flex items-center">
@@ -170,8 +173,16 @@ export default function PaymentModal({
                                     <div className="flex items-center">
                                         <span className="text-2xl mr-2">🅿️</span>
                                         <span className="font-semibold text-gray-900">PayPal</span>
+                                        {import.meta.env.VITE_ENABLE_PAYPAL !== 'true' && (
+                                            <span className="ml-2 text-xs bg-red-100 text-red-800 px-2 py-1 rounded">Deaktiviert</span>
+                                        )}
                                     </div>
-                                    <p className="text-sm text-gray-600 mt-1">Sicher bezahlen mit PayPal</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {import.meta.env.VITE_ENABLE_PAYPAL !== 'true'
+                                            ? 'PayPal ist derzeit nicht verfügbar'
+                                            : 'Sicher bezahlen mit PayPal'
+                                        }
+                                    </p>
                                 </div>
                             </div>
                         </div>
