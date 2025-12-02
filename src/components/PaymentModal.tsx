@@ -44,7 +44,7 @@ export default function PaymentModal({
 
     const subtotalAfterDiscount = totalPrice - totalDiscountAmount;
     const totalAmount = subtotalAfterDiscount + deliveryFee;
-    const totalDiscountPercentage = discounts.reduce((sum, discount) => sum + discount.percentage, 0);
+    const totalDiscountPercentage = discounts.reduce((sum, discount) => sum + (discount.percentage || 0), 0);
 
     const handleSubmit = () => {
         if (selectedPaymentMethod && acceptedTerms) {
@@ -75,10 +75,10 @@ export default function PaymentModal({
                             {discounts.length > 0 && (
                                 <>
                                     {discounts.map((discount) => {
-                                        const discountAmount = (totalPrice * discount.percentage) / 100;
+                                        const discountAmount = (totalPrice * (discount.percentage || 0)) / 100;
                                         return (
                                             <div key={discount.id} className="flex justify-between text-green-600 font-medium">
-                                                <span>🎁 {discount.name} (-{discount.percentage}%):</span>
+                                                <span>🎁 {discount.name}{discount.percentage ? ` (-${discount.percentage}%)` : ''}:</span>
                                                 <span>-{formatPrice(discountAmount)}</span>
                                             </div>
                                         );

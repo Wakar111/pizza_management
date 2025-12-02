@@ -50,8 +50,11 @@ export default function Cart() {
         }
     };
 
-    // Calculate total discount by summing all active discount percentages
-    const totalDiscountPercentage = activeDiscounts.reduce((sum, discount) => sum + discount.percentage, 0);
+    // Filter discounts that have a percentage (only those apply to cart)
+    const applicableDiscounts = activeDiscounts.filter(discount => discount.percentage !== null && discount.percentage > 0);
+    
+    // Calculate total discount by summing all applicable discount percentages
+    const totalDiscountPercentage = applicableDiscounts.reduce((sum, discount) => sum + (discount.percentage || 0), 0);
     const totalDiscountAmount = (totalPrice * totalDiscountPercentage) / 100;
     const subtotalAfterDiscount = totalPrice - totalDiscountAmount;
     const actualDeliveryFee = subtotalAfterDiscount >= minimumOrderValue ? 0 : deliveryFee;
@@ -84,10 +87,10 @@ export default function Cart() {
                 notes: customerData.notes,
                 subtotal: totalPrice,
                 delivery_fee: actualDeliveryFee,
-                discounts: activeDiscounts.map(discount => ({
+                discounts: applicableDiscounts.map(discount => ({
                     name: discount.name,
-                    percentage: discount.percentage,
-                    amount: (totalPrice * discount.percentage) / 100
+                    percentage: discount.percentage || 0,
+                    amount: (totalPrice * (discount.percentage || 0)) / 100
                 })),
                 discount_amount: totalDiscountAmount,
                 total_amount: totalAmount,
@@ -204,18 +207,18 @@ export default function Cart() {
                                 <span>Zwischensumme:</span>
                                 <span>{formatPrice(totalPrice)}</span>
                             </div>
-                            {activeDiscounts.length > 0 && (
+                            {applicableDiscounts.length > 0 && (
                                 <>
-                                    {activeDiscounts.map((discount) => {
-                                        const discountAmount = (totalPrice * discount.percentage) / 100;
+                                    {applicableDiscounts.map((discount) => {
+                                        const discountAmount = (totalPrice * (discount.percentage || 0)) / 100;
                                         return (
                                             <div key={discount.id} className="flex justify-between text-green-600 font-medium">
-                                                <span>🎁 {discount.name} (-{discount.percentage}%):</span>
+                                                <span>🎁 {discount.name}{discount.percentage ? ` (-${discount.percentage}%)` : ''}:</span>
                                                 <span>-{formatPrice(discountAmount)}</span>
                                             </div>
                                         );
                                     })}
-                                    {activeDiscounts.length > 1 && (
+                                    {applicableDiscounts.length > 1 && (
                                         <div className="flex justify-between text-green-700 font-bold border-t border-green-100 pt-2">
                                             <span>💰 Gesamt Rabatt ({totalDiscountPercentage}%):</span>
                                             <span>-{formatPrice(totalDiscountAmount)}</span>
@@ -304,7 +307,7 @@ export default function Cart() {
                 items={items}
                 totalPrice={totalPrice}
                 deliveryFee={actualDeliveryFee}
-                discounts={activeDiscounts}
+                discounts={applicableDiscounts}
                 totalDiscountAmount={totalDiscountAmount}
                 customerData={customerData || {}}
                 submitting={submitting}
