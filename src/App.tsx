@@ -39,6 +39,8 @@ function ScrollToTop() {
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isAdmin, loading } = useAuth();
+  
+  // Show loading spinner while checking auth
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -46,7 +48,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-
+  
+  // After loading, check if user is authenticated and admin
   if (!user || !isAdmin) {
     return <Navigate to="/login" replace />;
   }

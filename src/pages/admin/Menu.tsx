@@ -1,7 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
-import { menuService } from '../../lib/supabase';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { menuService, supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 import Toast from '../../components/Toast';
 import type { MenuItem } from '../../types';
+import { Session } from 'inspector';
 
 interface Size {
     name: string;
@@ -20,9 +22,34 @@ interface ItemForm {
 }
 
 export default function Menu() {
-    const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-    const [loading, setLoading] = useState(true);
+    console.log('========== MENU COMPONENT RENDERED ==========');
+    
+    // Initialize menuItems from localStorage if available
+    const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
+        try {
+            const cached = localStorage.getItem('admin_menu_items');
+            if (cached) {
+                console.log('[AdminMenu] Loaded from localStorage');
+                return JSON.parse(cached);
+            }
+        } catch (err) {
+            console.error('[AdminMenu] Error loading from localStorage:', err);
+        }
+        return [];
+    });
+    
+    // Set initial loading to false if we have cached data
+    const [loading, setLoading] = useState(() => {
+        try {
+            const cached = localStorage.getItem('admin_menu_items');
+            // If we have cached data, don't show loading spinner
+            return !cached;
+        } catch {
+            return true;
+        }
+    });
     const [saving, setSaving] = useState(false);
+    const loadingRef = useRef(false);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -46,11 +73,11 @@ export default function Menu() {
     // Categories
     const categories = ['Alle', 'Pizza', 'Pasta', 'Burger', 'Salate', 'Vorspeisen', 'Desserts', 'Getränke'];
 
-    const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
         setToastMessage(message);
         setToastType(type);
         setShowToast(true);
-    };
+    }, []);
 
     const getCategoryCount = (category: string) => {
         if (category === 'Alle') return menuItems.length;
@@ -68,24 +95,69 @@ export default function Menu() {
     const availableItems = useMemo(() => filteredItems.filter(item => item.available !== false), [filteredItems]);
     const unavailableItems = useMemo(() => filteredItems.filter(item => item.available === false), [filteredItems]);
 
-    const loadMenuItems = async () => {
+    const loadMenuItems = useCallback(async () => {
+        if (loadingRef.current) {
+            console.log('[AdminMenu] Already loading, skipping...');
+            return;
+        }
+        
+        loadingRef.current = true;
+        console.log('[AdminMenu] Loading menu items...');
+        
         try {
             setLoading(true);
+            console.log('[AdminMenu] Calling menuService.getAllMenuItems()...');
+            
+            // Add timeout to prevent hanging forever
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Request timeout')), 10000)
+            );
+            
             // Get all items including unavailable ones for admin
-            const { data, error } = await menuService.getAllMenuItems();
+            const result = await Promise.race([
+                menuService.getAllMenuItems(),
+                timeoutPromise
+            ]) as any;
+            
+            const { data, error } = result;
+            console.log('[AdminMenu] menuService returned, data:', data?.length, 'error:', error);
 
             if (error) {
+                console.error('[AdminMenu] Error from menuService:', error);
                 throw error;
             }
 
-            setMenuItems(data || []);
+            console.log('[AdminMenu] Loaded', data?.length || 0, 'items');
+            // Only update if we got data
+            if (data) {
+                setMenuItems(data);
+                // Save to localStorage
+                try {
+                    localStorage.setItem('admin_menu_items', JSON.stringify(data));
+                    console.log('[AdminMenu] Saved to localStorage');
+                } catch (err) {
+                    console.error('[AdminMenu] Error saving to localStorage:', err);
+                }
+            }
         } catch (error: any) {
             console.error('[AdminMenu] Error loading menu items:', error);
-            showNotification('Fehler beim Laden des Menüs: ' + error.message, 'error');
+            setToastMessage('Fehler beim Laden des Menüs: ' + error.message);
+            setToastType('error');
+            setShowToast(true);
         } finally {
             setLoading(false);
+            loadingRef.current = false;
+            console.log('[AdminMenu] Loading complete');
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        // Load data immediately on mount
+        loadMenuItems();
+        
+        // Don't reload on tab visibility change - it causes Supabase queries to hang
+        // The localStorage cache will keep data visible between tab switches
+    }, []);
 
     const editItem = (item: MenuItem) => {
         setEditingItem(item);
@@ -275,9 +347,7 @@ export default function Menu() {
         }
     };
 
-    useEffect(() => {
-        loadMenuItems();
-    }, []);
+
 
     return (
         <div className="admin-menu-page">

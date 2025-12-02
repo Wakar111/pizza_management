@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { stammkundenService } from '../../lib/supabase';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { stammkundenService, supabase } from '../../lib/supabase';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Toast from '../../components/Toast';
 
@@ -39,13 +39,13 @@ export default function Stammkunden() {
     const [toastMessage, setToastMessage] = useState('');
     const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
-    const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
         setToastMessage(message);
         setToastType(type);
         setShowToast(true);
-    };
+    }, []);
 
-    const searchCustomers = async (query: string) => {
+    const searchCustomers = useCallback(async (query: string) => {
         try {
             setLoading(true);
             // If query is empty, don't load anything
@@ -58,11 +58,13 @@ export default function Stammkunden() {
             setCustomers(data);
         } catch (error: any) {
             console.error('[AdminStammkunden] Error searching customers:', error);
-            showNotification('Fehler beim Suchen der Stammkunden: ' + error.message, 'error');
+            setToastMessage('Fehler beim Suchen der Stammkunden: ' + error.message);
+            setToastType('error');
+            setShowToast(true);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     const filteredCustomers = useMemo(() => {
         if (!searchQuery.trim()) return customers;
@@ -184,6 +186,8 @@ export default function Stammkunden() {
 
         return () => clearTimeout(timer);
     }, [searchQuery]);
+
+    // Don't reload on auth events - it causes Supabase queries to hang
 
     return (
         <div className="admin-stammkunden-page">

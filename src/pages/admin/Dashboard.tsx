@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { orderService, menuService } from '../../lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { orderService, menuService, supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Order {
     id: string;
@@ -18,19 +19,65 @@ interface OrderAnalytics {
 }
 
 export default function Dashboard() {
-    // Dashboard data
-    const [todayOrders, setTodayOrders] = useState(0);
-    const [todayRevenue, setTodayRevenue] = useState(0);
-    const [totalMenuItems, setTotalMenuItems] = useState(0);
-    const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+    // Initialize from localStorage
+    const [todayOrders, setTodayOrders] = useState(() => {
+        try {
+            const cached = localStorage.getItem('admin_dashboard');
+            if (cached) {
+                const data = JSON.parse(cached);
+                return data.todayOrders || 0;
+            }
+        } catch (err) {
+            console.error('[Dashboard] Error loading from localStorage:', err);
+        }
+        return 0;
+    });
+    
+    const [todayRevenue, setTodayRevenue] = useState(() => {
+        try {
+            const cached = localStorage.getItem('admin_dashboard');
+            if (cached) {
+                const data = JSON.parse(cached);
+                return data.todayRevenue || 0;
+            }
+        } catch (err) {}
+        return 0;
+    });
+    
+    const [totalMenuItems, setTotalMenuItems] = useState(() => {
+        try {
+            const cached = localStorage.getItem('admin_dashboard');
+            if (cached) {
+                const data = JSON.parse(cached);
+                return data.totalMenuItems || 0;
+            }
+        } catch (err) {}
+        return 0;
+    });
+    
+    const [recentOrders, setRecentOrders] = useState<Order[]>(() => {
+        try {
+            const cached = localStorage.getItem('admin_dashboard');
+            if (cached) {
+                const data = JSON.parse(cached);
+                return data.recentOrders || [];
+            }
+        } catch (err) {}
+        return [];
+    });
+    
     const [websiteVisitors] = useState(124); // Mock data as per Vue file
 
     // Order Analytics
-    const [orderAnalytics, setOrderAnalytics] = useState<OrderAnalytics>({
-        today: 0,
-        week: 0,
-        month: 0,
-        avgPerDay: 0
+    const [orderAnalytics, setOrderAnalytics] = useState<OrderAnalytics>(() => {
+        try {
+            const cached = localStorage.getItem('admin_dashboard');
+            if (cached) {
+                const data = JSON.parse(cached);
+                return data.orderAnalytics || { today: 0, week: 0, month: 0, avgPerDay: 0 };
+            }
+        } catch (err) {}
+        return { today: 0, week: 0, month: 0, avgPerDay: 0 };
     });
 
     const getStatusText = (status: string) => {
@@ -44,7 +91,7 @@ export default function Dashboard() {
     };
 
     // Load menu items count for dashboard
-    const loadMenuItemsCount = async () => {
+    const loadMenuItemsCount = useCallback(async () => {
         try {
             const items = await menuService.getMenuItems();
             setTotalMenuItems(items.length);
@@ -52,9 +99,9 @@ export default function Dashboard() {
             console.error('Error loading menu items count:', error);
             setTotalMenuItems(0);
         }
-    };
+    }, []);
 
-    const loadDashboardData = async () => {
+    const loadDashboardData = useCallback(async () => {
         try {
             // Load orders for dashboard stats
             const orders = await orderService.getOrders();
@@ -86,17 +133,29 @@ export default function Dashboard() {
             });
 
             // Update dashboard stats
-            setTodayOrders(todayOrdersList.length);
-            setTodayRevenue(todayOrdersList.reduce((sum: number, order: any) => sum + order.total_amount, 0));
-            setRecentOrders(orders.slice(0, 5));
-
-            // Update order analytics
-            setOrderAnalytics({
-                today: todayOrdersList.length,
-                week: weekOrdersList.length,
-                month: monthOrdersList.length,
-                avgPerDay: monthOrdersList.length > 0 ? monthOrdersList.length / 30 : 0
-            });
+            const dashboardData = {
+                todayOrders: todayOrdersList.length,
+                todayRevenue: todayOrdersList.reduce((sum: number, order: any) => sum + order.total_amount, 0),
+                recentOrders: orders.slice(0, 5),
+                orderAnalytics: {
+                    today: todayOrdersList.length,
+                    week: weekOrdersList.length,
+                    month: monthOrdersList.length,
+                    avgPerDay: monthOrdersList.length > 0 ? monthOrdersList.length / 30 : 0
+                }
+            };
+            
+            setTodayOrders(dashboardData.todayOrders);
+            setTodayRevenue(dashboardData.todayRevenue);
+            setRecentOrders(dashboardData.recentOrders);
+            setOrderAnalytics(dashboardData.orderAnalytics);
+            
+            // Save to localStorage
+            try {
+                localStorage.setItem('admin_dashboard', JSON.stringify(dashboardData));
+            } catch (err) {
+                console.error('[Dashboard] Error saving to localStorage:', err);
+            }
 
         } catch (error) {
             console.error('Error loading dashboard data:', error);
@@ -126,11 +185,14 @@ export default function Dashboard() {
                 }
             ]);
         }
-    };
+    }, []);
 
     useEffect(() => {
+        // Load data immediately on mount
         loadDashboardData();
         loadMenuItemsCount();
+        
+        // Don't reload on tab visibility change - it causes Supabase queries to hang
     }, []);
 
     return (

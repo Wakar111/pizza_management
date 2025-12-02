@@ -36,6 +36,7 @@ export default function Menu() {
     }, []);
 
     const loadMenuItems = async () => {
+        console.log('Loading menu items...');
         try {
             setLoading(true);
             const items = await menuService.getMenuItems();

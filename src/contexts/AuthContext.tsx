@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import type { User } from '../types';
 
@@ -9,7 +9,6 @@ interface AuthContextType {
     signIn: (email: string, password: string) => Promise<void>;
     signUp: (email: string, password: string, userData?: any) => Promise<void>;
     signOut: () => Promise<void>;
-    initialize: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,15 +19,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [isCheckingAdmin, setIsCheckingAdmin] = useState(false);
     const [isInitialized, setIsInitialized] = useState(false);
+    const hasLoadedOnce = useRef(false);
+    const isProcessingAuthChange = useRef(false);
 
-    const checkAdminStatus = async (userId: string) => {
-        if (isCheckingAdmin) {
-            console.log('[Auth] Already checking admin status, skipping');
-            return;
-        }
-
-        setIsCheckingAdmin(true);
-
+    const checkAdminStatus = useCallback(async (userId: string) => {
+        console.log('[Auth] Checking admin status for user:', userId);
+        
         try {
             // Check user_profiles table for role
             const { data: profile, error: profileError } = await supabase
@@ -38,9 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 .single();
 
             if (!profileError && profile) {
-                setIsAdmin(profile.role === 'admin');
-                console.log('[Auth] User role from profile:', profile.role);
-                return;
+                const isAdminUser = profile.role === 'admin';
+                setIsAdmin(isAdminUser);
+                console.log('[Auth] User role from profile:', profile.role, 'isAdmin:', isAdminUser);
+                return isAdminUser;
             }
 
             // Fallback to admin_users table
@@ -50,15 +47,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 .eq('user_id', userId)
                 .single();
 
-            setIsAdmin(!error && !!data);
-            console.log('[Auth] Admin status from admin_users table:', !error && !!data);
+            const isAdminUser = !error && !!data;
+            setIsAdmin(isAdminUser);
+            console.log('[Auth] Admin status from admin_users table:', isAdminUser);
+            return isAdminUser;
         } catch (err) {
             console.error('[Auth] Error checking admin status:', err);
             setIsAdmin(false);
-        } finally {
-            setIsCheckingAdmin(false);
+            return false;
         }
-    };
+    }, []);
 
     const signIn = async (email: string, password: string) => {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -107,50 +105,63 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const initialize = async () => {
-        if (isInitialized) {
+    useEffect(() => {
+        // Only initialize once
+        if (hasLoadedOnce.current) {
             console.log('[Auth] Already initialized, skipping');
             return;
         }
 
         console.log('[Auth] Starting initialization...');
 
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
+        const initializeAuth = async () => {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
 
-            if (session?.user) {
-                setUser(session.user as User);
-                console.log('[Auth] Session found, checking admin status...');
-                await checkAdminStatus(session.user.id);
-            } else {
-                console.log('[Auth] No session found');
-            }
-
-            // Auth state change listener
-            supabase.auth.onAuthStateChange(async (event: string, session: any) => {
-                console.log('[Auth] Auth state changed:', event);
                 if (session?.user) {
                     setUser(session.user as User);
+                    console.log('[Auth] Session found, checking admin status...');
                     await checkAdminStatus(session.user.id);
+                    console.log('[Auth] Admin status check complete');
                 } else {
-                    setUser(null);
-                    setIsAdmin(false);
+                    console.log('[Auth] No session found');
                 }
-            });
 
-            setIsInitialized(true);
-            console.log('[Auth] Initialization complete');
-        } finally {
-            setLoading(false);
-        }
-    };
+                // Auth state change listener - only for sign out
+                const { data: authListener } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+                    console.log('[Auth] Auth state changed:', event);
+                    
+                    // Only handle SIGNED_OUT - ignore all other events to prevent breaking Supabase
+                    if (event === 'SIGNED_OUT') {
+                        console.log('[Auth] User signed out, clearing state');
+                        setUser(null);
+                        setIsAdmin(false);
+                    } else {
+                        console.log('[Auth] Ignoring event:', event, '- already initialized');
+                    }
+                });
+                
+                // Cleanup listener on unmount
+                return () => {
+                    authListener?.subscription.unsubscribe();
+                };
 
-    useEffect(() => {
-        initialize();
-    }, []);
+                console.log('[Auth] Initialization complete');
+            } catch (error) {
+                console.error('[Auth] Initialization error:', error);
+            } finally {
+                // Only set loading to false once
+                setLoading(false);
+                hasLoadedOnce.current = true;
+                console.log('[Auth] Loading set to false (first time)');
+            }
+        };
+
+        initializeAuth();
+    }, []); // Empty dependencies - only run once
 
     return (
-        <AuthContext.Provider value={{ user, isAdmin, loading, signIn, signUp, signOut, initialize }}>
+        <AuthContext.Provider value={{ user, isAdmin, loading, signIn, signUp, signOut }}>
             {children}
         </AuthContext.Provider>
     );

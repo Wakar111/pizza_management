@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { orderService } from '../../lib/supabase';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { orderService, supabase } from '../../lib/supabase';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Toast from '../../components/Toast';
 
@@ -35,10 +35,30 @@ interface Order {
 }
 
 export default function Orders() {
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Initialize from localStorage
+    const [orders, setOrders] = useState<Order[]>(() => {
+        try {
+            const cached = localStorage.getItem('admin_orders');
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        } catch (err) {
+            console.error('[AdminOrders] Error loading from localStorage:', err);
+        }
+        return [];
+    });
+    
+    const [loading, setLoading] = useState(() => {
+        try {
+            const cached = localStorage.getItem('admin_orders');
+            return !cached; // Only show loading if no cache
+        } catch {
+            return false;
+        }
+    });
     const [filterStatus, setFilterStatus] = useState('all');
     const [dateFilter, setDateFilter] = useState('today');
+    const loadingRef = useRef(false);
 
     // Confirm Dialog State
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -49,24 +69,51 @@ export default function Orders() {
     const [toastMessage, setToastMessage] = useState('');
     const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
-    const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
         setToastMessage(message);
         setToastType(type);
         setShowToast(true);
-    };
+    }, []);
 
-    const loadOrders = async () => {
+    // Wrap loadOrders with useCallback
+    const loadOrders = useCallback(async () => {
+        // Prevent multiple simultaneous loads
+        if (loadingRef.current) {
+            console.log('[AdminOrders] Already loading, skipping...');
+            return;
+        }
+        
+        loadingRef.current = true;
+        setLoading(true);
+        
         try {
-            setLoading(true);
             const data = await orderService.getOrders();
             setOrders(data);
+            // Save to localStorage
+            try {
+                localStorage.setItem('admin_orders', JSON.stringify(data));
+            } catch (err) {
+                console.error('[AdminOrders] Error saving to localStorage:', err);
+            }
         } catch (error: any) {
             console.error('[AdminOrders] Error loading orders:', error);
-            showNotification('Fehler beim Laden der Bestellungen: ' + error.message, 'error');
+            setToastMessage('Fehler beim Laden der Bestellungen: ' + error.message);
+            setToastType('error');
+            setShowToast(true);
+            setOrders([]); // Set empty array on error
         } finally {
             setLoading(false);
+            loadingRef.current = false;
         }
-    };
+    }, []);
+
+
+    useEffect(() => {
+        // Load data immediately on mount
+        loadOrders();
+        
+        // Don't reload on tab visibility change - it causes Supabase queries to hang
+    }, []);
 
     const filteredOrders = useMemo(() => {
         let filtered = orders;
@@ -167,12 +214,6 @@ export default function Orders() {
         });
     };
 
-    useEffect(() => {
-        loadOrders();
-
-        // Set up real-time subscription if needed later
-        // For now, just load once on mount
-    }, []);
 
     return (
         <div className="admin-orders-page">

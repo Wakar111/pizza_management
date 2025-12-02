@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { settingsService, supabase, type Discount } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 import Toast from '../../components/Toast';
 import ConfirmModal from '../../components/ConfirmModal';
 import OpeningHoursManager from '../../components/OpeningHoursManager';
@@ -11,13 +12,33 @@ interface SettingsData {
 }
 
 export default function Settings() {
-    const [settings, setSettings] = useState<SettingsData>({
-        min_order_value_free_delivery: 50,
-        delivery_fee: 2.50,
-        estimated_delivery_time: '40-50'
+    // Initialize from localStorage
+    const [settings, setSettings] = useState<SettingsData>(() => {
+        try {
+            const cached = localStorage.getItem('admin_settings');
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        } catch (err) {
+            console.error('[AdminSettings] Error loading from localStorage:', err);
+        }
+        return {
+            min_order_value_free_delivery: 50,
+            delivery_fee: 2.50,
+            estimated_delivery_time: '40-50'
+        };
     });
+    
     const [originalSettings, setOriginalSettings] = useState<SettingsData | null>(null);
-    const [loading, setLoading] = useState(true);
+    
+    const [loading, setLoading] = useState(() => {
+        try {
+            const cached = localStorage.getItem('admin_settings');
+            return !cached; // Only show loading if no cache
+        } catch {
+            return true;
+        }
+    });
     const [saving, setSaving] = useState(false);
 
 
@@ -42,50 +63,60 @@ export default function Settings() {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [discountToDelete, setDiscountToDelete] = useState<string | null>(null);
 
-    const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
         setToastMessage(message);
         setToastType(type);
         setShowToast(true);
-    };
+    }, []);
 
-    const loadSettings = async () => {
+    const loadSettings = useCallback(async () => {
         try {
             setLoading(true);
             const data = await settingsService.getSettings();
             console.log('[AdminSettings] Loaded data:', data);
             if (data) {
                 const loadedSettings = {
-                    min_order_value_free_delivery: typeof data.minimum_order_value === 'number'
-                        ? data.minimum_order_value
-                        : parseFloat(data.minimum_order_value) || 50,
-                    delivery_fee: typeof data.delivery_fee === 'number'
-                        ? data.delivery_fee
+                    min_order_value_free_delivery: typeof data.min_order_value_free_delivery === 'string'
+                        ? parseFloat(data.min_order_value_free_delivery) || 50
+                        : data.min_order_value_free_delivery || 50,
+                    delivery_fee: typeof data.delivery_fee === 'string'
+                        ? parseFloat(data.delivery_fee) || 2.50
                         : parseFloat(data.delivery_fee) || 2.50,
                     estimated_delivery_time: data.estimated_delivery_time || '40-50'
                 };
                 setSettings(loadedSettings);
                 setOriginalSettings(loadedSettings);
+                // Save to localStorage
+                try {
+                    localStorage.setItem('admin_settings', JSON.stringify(loadedSettings));
+                } catch (err) {
+                    console.error('[AdminSettings] Error saving to localStorage:', err);
+                }
             }
         } catch (error: any) {
             console.error('[AdminSettings] Error loading settings:', error);
             // Don't show error for mock data missing, just use defaults
             if (!error.message?.includes('mock')) {
-                showNotification('Fehler beim Laden der Einstellungen', 'error');
+                setToastMessage('Fehler beim Laden der Einstellungen');
+                setToastType('error');
+                setShowToast(true);
             }
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const loadDiscounts = async () => {
+    const loadDiscounts = useCallback(async () => {
         try {
             const data = await settingsService.getAllDiscounts();
             setDiscounts(data);
         } catch (error) {
             console.error('Error loading discounts:', error);
-            showNotification('Fehler beim Laden der Rabatte', 'error');
+            setToastMessage('Fehler beim Laden der Rabatte');
+            setToastType('error');
+            setShowToast(true);
         }
-    };
+    }, []);
 
     const handleAddDiscount = async () => {
         if (!discountForm.name || discountForm.percentage <= 0) {
@@ -232,8 +263,11 @@ export default function Settings() {
     };
 
     useEffect(() => {
+        // Load data immediately on mount
         loadSettings();
         loadDiscounts();
+        
+        // Don't reload on tab visibility change - it causes Supabase queries to hang
     }, []);
 
     return (

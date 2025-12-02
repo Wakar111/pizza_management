@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { orderService } from '../../lib/supabase';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { orderService, supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 import Toast from '../../components/Toast';
 
 interface OrderItem {
@@ -36,8 +37,27 @@ interface Order {
 type DateFilterType = 'today' | 'week' | 'month' | 'last-month' | 'all' | 'custom';
 
 export default function Abrechnungen() {
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Initialize from localStorage
+    const [orders, setOrders] = useState<Order[]>(() => {
+        try {
+            const cached = localStorage.getItem('admin_abrechnungen');
+            if (cached) {
+                return JSON.parse(cached);
+            }
+        } catch (err) {
+            console.error('[Abrechnungen] Error loading from localStorage:', err);
+        }
+        return [];
+    });
+    
+    const [loading, setLoading] = useState(() => {
+        try {
+            const cached = localStorage.getItem('admin_abrechnungen');
+            return !cached;
+        } catch {
+            return true;
+        }
+    });
     const [dateFilter, setDateFilter] = useState<DateFilterType>('month');
     const [customStartDate, setCustomStartDate] = useState('');
     const [customEndDate, setCustomEndDate] = useState('');
@@ -49,24 +69,32 @@ export default function Abrechnungen() {
     const [toastMessage, setToastMessage] = useState('');
     const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
-    const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
         setToastMessage(message);
         setToastType(type);
         setShowToast(true);
-    };
+    }, []);
 
-    const loadOrders = async () => {
+    const loadOrders = useCallback(async () => {
         try {
             setLoading(true);
             const data = await orderService.getOrders();
             setOrders(data);
+            // Save to localStorage
+            try {
+                localStorage.setItem('admin_abrechnungen', JSON.stringify(data));
+            } catch (err) {
+                console.error('[Abrechnungen] Error saving to localStorage:', err);
+            }
         } catch (error: any) {
             console.error('[Abrechnungen] Error loading orders:', error);
-            showNotification('Fehler beim Laden der Bestellungen: ' + error.message, 'error');
+            setToastMessage('Fehler beim Laden der Bestellungen: ' + error.message);
+            setToastType('error');
+            setShowToast(true);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
     const filteredOrders = useMemo(() => {
         let filtered = orders;
@@ -245,7 +273,10 @@ export default function Abrechnungen() {
     };
 
     useEffect(() => {
+        // Load data immediately on mount
         loadOrders();
+        
+        // Don't reload on tab visibility change - it causes Supabase queries to hang
     }, []);
 
     return (
