@@ -72,12 +72,11 @@ export default function Settings() {
         try {
             setLoading(true);
             const data = await settingsService.getSettings();
-            console.log('[AdminSettings] Loaded data:', data);
             if (data) {
                 const loadedSettings = {
-                    min_order_value_free_delivery: typeof data.min_order_value_free_delivery === 'string'
-                        ? parseFloat(data.min_order_value_free_delivery) || 50
-                        : data.min_order_value_free_delivery || 50,
+                    min_order_value_free_delivery: typeof data.minimum_order_value === 'string'
+                        ? parseFloat(data.minimum_order_value) || 50
+                        : data.minimum_order_value || 50,
                     delivery_fee: typeof data.delivery_fee === 'string'
                         ? parseFloat(data.delivery_fee) || 2.50
                         : parseFloat(data.delivery_fee) || 2.50,

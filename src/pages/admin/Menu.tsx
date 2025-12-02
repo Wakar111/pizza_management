@@ -106,18 +106,8 @@ export default function Menu() {
             setLoading(true);
             console.log('[AdminMenu] Calling menuService.getAllMenuItems()...');
             
-            // Add timeout to prevent hanging forever
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Request timeout')), 10000)
-            );
-            
             // Get all items including unavailable ones for admin
-            const result = await Promise.race([
-                menuService.getAllMenuItems(),
-                timeoutPromise
-            ]) as any;
-            
-            const { data, error } = result;
+            const { data, error } = await menuService.getAllMenuItems();
             console.log('[AdminMenu] menuService returned, data:', data?.length, 'error:', error);
 
             if (error) {

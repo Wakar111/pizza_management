@@ -65,8 +65,6 @@ export default function Dashboard() {
         return [];
     });
     
-    const [websiteVisitors] = useState(124); // Mock data as per Vue file
-
     // Order Analytics
     const [orderAnalytics, setOrderAnalytics] = useState<OrderAnalytics>(() => {
         try {
@@ -77,6 +75,21 @@ export default function Dashboard() {
             }
         } catch (err) {}
         return { today: 0, week: 0, month: 0, avgPerDay: 0 };
+    });
+
+    // Chart state
+    const [chartPeriod, setChartPeriod] = useState<'week' | 'month'>('week');
+    const [chartData, setChartData] = useState<{ label: string; count: number }[]>([]);
+    const [allOrders, setAllOrders] = useState<any[]>(() => {
+        // Try to load all orders from localStorage
+        try {
+            const cached = localStorage.getItem('admin_dashboard');
+            if (cached) {
+                const data = JSON.parse(cached);
+                return data.allOrders || [];
+            }
+        } catch (err) {}
+        return [];
     });
 
     const getStatusText = (status: string) => {
@@ -99,6 +112,55 @@ export default function Dashboard() {
             setTotalMenuItems(0);
         }
     }, []);
+
+    // Calculate chart data based on period
+    const calculateChartData = useCallback((orders: any[]) => {
+        const now = new Date();
+        const data: { label: string; count: number }[] = [];
+
+        if (chartPeriod === 'week') {
+            // Last 7 days
+            const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(now);
+                date.setDate(date.getDate() - i);
+                const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                const dayEnd = new Date(dayStart);
+                dayEnd.setDate(dayEnd.getDate() + 1);
+
+                const count = orders.filter((order: any) => {
+                    const orderDate = new Date(order.created_at);
+                    return orderDate >= dayStart && orderDate < dayEnd;
+                }).length;
+
+                data.push({
+                    label: dayNames[date.getDay()],
+                    count
+                });
+            }
+        } else {
+            // Last 30 days grouped by week
+            for (let i = 3; i >= 0; i--) {
+                const weekEnd = new Date(now);
+                weekEnd.setDate(weekEnd.getDate() - (i * 7));
+                const weekStart = new Date(weekEnd);
+                weekStart.setDate(weekStart.getDate() - 7);
+
+                const count = orders.filter((order: any) => {
+                    const orderDate = new Date(order.created_at);
+                    return orderDate >= weekStart && orderDate < weekEnd;
+                }).length;
+
+                const weekLabel = i === 0 ? 'Diese Woche' : `Vor ${i} Woche${i > 1 ? 'n' : ''}`;
+                data.push({
+                    label: weekLabel,
+                    count
+                });
+            }
+        }
+
+        setChartData(data);
+    }, [chartPeriod]);
 
     const loadDashboardData = useCallback(async () => {
         try {
@@ -136,6 +198,7 @@ export default function Dashboard() {
                 todayOrders: todayOrdersList.length,
                 todayRevenue: todayOrdersList.reduce((sum: number, order: any) => sum + order.total_amount, 0),
                 recentOrders: orders.slice(0, 5),
+                allOrders: orders, // Store all orders for chart
                 orderAnalytics: {
                     today: todayOrdersList.length,
                     week: weekOrdersList.length,
@@ -148,6 +211,9 @@ export default function Dashboard() {
             setTodayRevenue(dashboardData.todayRevenue);
             setRecentOrders(dashboardData.recentOrders);
             setOrderAnalytics(dashboardData.orderAnalytics);
+            
+            // Store all orders for chart recalculation
+            setAllOrders(orders);
             
             // Save to localStorage
             try {
@@ -194,6 +260,16 @@ export default function Dashboard() {
         // Don't reload on tab visibility change - it causes Supabase queries to hang
     }, []);
 
+    // Recalculate chart data when period or orders change
+    useEffect(() => {
+        if (allOrders.length > 0) {
+            calculateChartData(allOrders);
+        } else {
+            // Show empty chart
+            setChartData([]);
+        }
+    }, [chartPeriod, allOrders, calculateChartData]);
+
     return (
         <div className="admin-page">
             <div className="max-w-7xl mx-auto px-4 py-8">
@@ -236,15 +312,18 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <a 
+                            href="/admin/abrechnungen"
+                            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer block"
+                        >
                             <div className="flex items-center">
-                                <div className="text-3xl mr-4">👥</div>
+                                <div className="text-3xl mr-4">📊</div>
                                 <div>
-                                    <h3 className="text-lg font-semibold">Website Besucher</h3>
-                                    <p className="text-2xl font-bold text-purple-600">{websiteVisitors}</p>
+                                    <h3 className="text-lg font-semibold">Abrechnungen</h3>
+                                    <p className="text-sm text-gray-500">Finanzübersicht anzeigen</p>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     </div>
 
                     {/* Charts and Recent Orders */}
@@ -282,14 +361,40 @@ export default function Dashboard() {
                         </div>
 
                         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                            <div className="flex items-center">
-                                <div className="text-3xl mr-4">📈</div>
-                                <div>
-                                    <h3 className="text-lg font-semibold">Bestellungen Analytics</h3>
-                                    <p className="text-2xl font-bold text-blue-600">{orderAnalytics.today}</p>
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center">
+                                    <div className="text-3xl mr-4">📈</div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold">Bestellungen Analytics</h3>
+                                        <p className="text-sm text-gray-500">Bestellungen pro Tag</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setChartPeriod('week')}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            chartPeriod === 'week'
+                                                ? 'bg-primary-500 text-white'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Diese Woche
+                                    </button>
+                                    <button
+                                        onClick={() => setChartPeriod('month')}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            chartPeriod === 'month'
+                                                ? 'bg-primary-500 text-white'
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Monat
+                                    </button>
                                 </div>
                             </div>
-                            <div className="mt-4">
+
+                            {/* Key Metrics */}
+                            <div className="mb-6">
                                 <div className="flex justify-between text-sm mb-2">
                                     <span className="text-gray-600">Heute</span>
                                     <span className="font-medium">{orderAnalytics.today} Bestellungen</span>
@@ -298,14 +403,74 @@ export default function Dashboard() {
                                     <span className="text-gray-600">Diese Woche</span>
                                     <span className="font-medium">{orderAnalytics.week} Bestellungen</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
+                                <div className="flex justify-between text-sm mb-2">
                                     <span className="text-gray-600">Diesen Monat</span>
                                     <span className="font-medium">{orderAnalytics.month} Bestellungen</span>
                                 </div>
-                                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                                <div className="mt-3 p-3 bg-blue-50 rounded-lg">
                                     <p className="text-sm text-blue-800">
                                         📊 Durchschnitt: {orderAnalytics.avgPerDay.toFixed(1)} Bestellungen/Tag
                                     </p>
+                                </div>
+                            </div>
+                            
+                            {/* Bar Chart */}
+                            <div className="h-80 flex items-end justify-between gap-2">
+                                {chartData.length === 0 ? (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                        Keine Daten verfügbar
+                                    </div>
+                                ) : chartData.map((item, index) => {
+                                    const maxOrders = Math.max(...chartData.map(d => d.count), 1);
+                                    const heightPercent = (item.count / maxOrders) * 100;
+                                    
+                                    return (
+                                        <div key={index} className="flex-1 flex flex-col items-center gap-2">
+                                            <div className="w-full flex flex-col items-center">
+                                                <span className="text-xs font-medium text-gray-700 mb-1">
+                                                    {item.count}
+                                                </span>
+                                                <div
+                                                    className="w-full bg-gradient-to-t from-primary-500 to-primary-400 rounded-t-lg transition-all duration-300 hover:from-primary-600 hover:to-primary-500 cursor-pointer relative group"
+                                                    style={{ 
+                                                        height: `${Math.max(heightPercent, 5)}%`,
+                                                        minHeight: item.count > 0 ? '20px' : '5px'
+                                                    }}
+                                                >
+                                                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                                        {item.count} Bestellung{item.count !== 1 ? 'en' : ''}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="text-xs text-gray-600 font-medium text-center">
+                                                {item.label}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            
+                            {/* Summary */}
+                            <div className="mt-6 pt-4 border-t border-gray-100">
+                                <div className="grid grid-cols-3 gap-4">
+                                    <div className="text-center">
+                                        <p className="text-sm text-gray-600">Gesamt</p>
+                                        <p className="text-lg font-bold text-primary-600">
+                                            {chartData.reduce((sum, item) => sum + item.count, 0)}
+                                        </p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-sm text-gray-600">Durchschnitt</p>
+                                        <p className="text-lg font-bold text-blue-600">
+                                            {(chartData.reduce((sum, item) => sum + item.count, 0) / chartData.length).toFixed(1)}
+                                        </p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-sm text-gray-600">Höchster Tag</p>
+                                        <p className="text-lg font-bold text-green-600">
+                                            {Math.max(...chartData.map(d => d.count))}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>

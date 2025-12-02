@@ -57,7 +57,7 @@ export default function Orders() {
         }
     });
     const [filterStatus, setFilterStatus] = useState('all');
-    const [dateFilter, setDateFilter] = useState('today');
+    const [dateFilter, setDateFilter] = useState('week');
     const loadingRef = useRef(false);
 
     // Confirm Dialog State
