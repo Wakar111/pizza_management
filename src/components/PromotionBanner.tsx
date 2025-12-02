@@ -79,12 +79,18 @@ export default function PromotionBanner() {
             {/* Content */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 py-4">
                 <div className="flex items-center justify-between gap-4 text-white">
-                    {/* Left: Discount badge */}
+                    {/* Left: Discount badge or promotion icon */}
                     <div className="flex items-center gap-4">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 border-2 border-white/50">
-                            <span className="text-3xl font-black">{currentPromo.percentage}%</span>
-                            <span className="ml-2 text-sm font-semibold uppercase tracking-wide">Rabatt</span>
-                        </div>
+                        {currentPromo.percentage ? (
+                            <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 border-2 border-white/50">
+                                <span className="text-3xl font-black">{currentPromo.percentage}%</span>
+                                <span className="ml-2 text-sm font-semibold uppercase tracking-wide">Rabatt</span>
+                            </div>
+                        ) : (
+                            <div className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border-2 border-white/50">
+                                <span className="text-3xl">🎉</span>
+                            </div>
+                        )}
 
                         {/* Center: Promotion name */}
                         <div className="hidden md:block">

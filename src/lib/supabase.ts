@@ -6,7 +6,7 @@ import type { MenuItem } from '../types';
 export interface Discount {
     id: string;
     name: string;
-    percentage: number;
+    percentage: number | null;
     startDate: string | null;
     endDate: string | null;
     enabled: boolean;

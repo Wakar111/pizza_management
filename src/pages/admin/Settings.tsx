@@ -50,9 +50,15 @@ export default function Settings() {
     const [discounts, setDiscounts] = useState<Discount[]>([]);
     const [showDiscountForm, setShowDiscountForm] = useState(false);
     const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null);
-    const [discountForm, setDiscountForm] = useState({
+    const [discountForm, setDiscountForm] = useState<{
+        name: string;
+        percentage: number | null;
+        startDate: string;
+        endDate: string;
+        enabled: boolean;
+    }>({
         name: '',
-        percentage: 0,
+        percentage: null,
         startDate: '',
         endDate: '',
         enabled: true
@@ -117,8 +123,13 @@ export default function Settings() {
     }, []);
 
     const handleAddDiscount = async () => {
-        if (!discountForm.name || discountForm.percentage <= 0) {
-            showNotification('Bitte Name und Rabatt eingeben', 'error');
+        if (!discountForm.name) {
+            showNotification('Bitte Aktionsname eingeben', 'error');
+            return;
+        }
+
+        if (discountForm.percentage !== null && discountForm.percentage <= 0) {
+            showNotification('Rabatt muss größer als 0 sein', 'error');
             return;
         }
 
@@ -155,7 +166,7 @@ export default function Settings() {
             // Reset form
             setShowDiscountForm(false);
             setEditingDiscount(null);
-            setDiscountForm({ name: '', percentage: 0, startDate: '', endDate: '', enabled: true });
+            setDiscountForm({ name: '', percentage: null, startDate: '', endDate: '', enabled: true });
         } catch (error) {
             console.error('Error saving discount:', error);
             showNotification('Fehler beim Speichern', 'error');
@@ -290,7 +301,7 @@ export default function Settings() {
                                 <button
                                     onClick={() => {
                                         setEditingDiscount(null);
-                                        setDiscountForm({ name: '', percentage: 0, startDate: '', endDate: '', enabled: true });
+                                        setDiscountForm({ name: '', percentage: null, startDate: '', endDate: '', enabled: true });
                                         setShowDiscountForm(!showDiscountForm);
                                     }}
                                     className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
@@ -320,14 +331,21 @@ export default function Settings() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Rabatt (%)
+                                                Rabatt (%) <span className="text-gray-400 font-normal text-xs">(Optional)</span>
                                             </label>
                                             <input
                                                 type="number"
                                                 min="0"
                                                 max="100"
-                                                value={discountForm.percentage}
-                                                onChange={(e) => setDiscountForm({ ...discountForm, percentage: parseFloat(e.target.value) || 0 })}
+                                                value={discountForm.percentage ?? ''}
+                                                onChange={(e) => {
+                                                    const value = e.target.value.trim();
+                                                    setDiscountForm({ 
+                                                        ...discountForm, 
+                                                        percentage: value === '' ? null : parseFloat(value) 
+                                                    });
+                                                }}
+                                                placeholder="z.B. 20"
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                                             />
                                         </div>
@@ -413,7 +431,9 @@ export default function Settings() {
                                                     return (
                                                         <tr key={discount.id} className="hover:bg-gray-50">
                                                             <td className="px-4 py-3 text-sm text-gray-900 font-medium">{discount.name}</td>
-                                                            <td className="px-4 py-3 text-sm text-gray-700">{discount.percentage}%</td>
+                                                            <td className="px-4 py-3 text-sm text-gray-700">
+                                                                {discount.percentage ? `${discount.percentage}%` : '-'}
+                                                            </td>
                                                             <td className="px-4 py-3 text-sm text-gray-700">
                                                                 {discount.startDate ? new Date(discount.startDate).toLocaleDateString('de-DE') : 'Sofort'} - {discount.endDate ? new Date(discount.endDate).toLocaleDateString('de-DE') : 'Unbegrenzt'}
                                                             </td>
