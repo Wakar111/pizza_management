@@ -17,10 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [isCheckingAdmin, setIsCheckingAdmin] = useState(false);
-    const [isInitialized, setIsInitialized] = useState(false);
     const hasLoadedOnce = useRef(false);
-    const isProcessingAuthChange = useRef(false);
 
     const checkAdminStatus = useCallback(async (userId: string) => {
         console.log('[Auth] Checking admin status for user:', userId);
@@ -128,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
 
                 // Auth state change listener - only for sign out
-                const { data: authListener } = supabase.auth.onAuthStateChange(async (event: string, session: any) => {
+                const { data: authListener } = supabase.auth.onAuthStateChange(async (event: string) => {
                     console.log('[Auth] Auth state changed:', event);
                     
                     // Only handle SIGNED_OUT - ignore all other events to prevent breaking Supabase

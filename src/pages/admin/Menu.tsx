@@ -1,9 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { menuService, supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
+import { menuService } from '../../lib/supabase';
 import Toast from '../../components/Toast';
 import type { MenuItem } from '../../types';
-import { Session } from 'inspector';
 
 interface Size {
     name: string;

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { orderService, supabase } from '../../lib/supabase';
+import { orderService } from '../../lib/supabase';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Toast from '../../components/Toast';
 

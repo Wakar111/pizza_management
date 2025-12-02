@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { settingsService, supabase, type Discount } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
 import Toast from '../../components/Toast';
 import ConfirmModal from '../../components/ConfirmModal';
 import OpeningHoursManager from '../../components/OpeningHoursManager';

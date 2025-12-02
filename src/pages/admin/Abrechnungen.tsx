@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { orderService, supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
+import { orderService } from '../../lib/supabase';
 import Toast from '../../components/Toast';
 
 interface OrderItem {

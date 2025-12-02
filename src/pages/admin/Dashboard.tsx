@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { orderService, menuService, supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
+import { orderService, menuService } from '../../lib/supabase';
 
 interface Order {
     id: string;
