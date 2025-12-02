@@ -423,23 +423,24 @@ export default function Dashboard() {
                                 ) : chartData.map((item, index) => {
                                     const maxOrders = Math.max(...chartData.map(d => d.count), 1);
                                     const heightPercent = (item.count / maxOrders) * 100;
+                                    const heightPx = (heightPercent / 100) * 256; // 256px = h-64
                                     
                                     return (
                                         <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                                            <div className="w-full flex flex-col items-center">
-                                                <span className="text-xs font-medium text-gray-700 mb-1">
-                                                    {item.count}
-                                                </span>
+                                            <div className="w-full flex flex-col items-end justify-end h-64">
                                                 <div
                                                     className="w-full bg-gradient-to-t from-primary-500 to-primary-400 rounded-t-lg transition-all duration-300 hover:from-primary-600 hover:to-primary-500 cursor-pointer relative group"
                                                     style={{ 
-                                                        height: `${Math.max(heightPercent, 5)}%`,
+                                                        height: `${Math.max(heightPx, 10)}px`,
                                                         minHeight: item.count > 0 ? '20px' : '5px'
                                                     }}
                                                 >
                                                     <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                                         {item.count} Bestellung{item.count !== 1 ? 'en' : ''}
                                                     </div>
+                                                    <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700">
+                                                        {item.count}
+                                                    </span>
                                                 </div>
                                             </div>
                                             <span className="text-xs text-gray-600 font-medium text-center">

@@ -4,7 +4,6 @@ import { useCart } from '../contexts/CartContext';
 import { orderService, settingsService, type Discount } from '../lib/supabase';
 import { formatPrice } from '../utils/format';
 import { useOpeningHours } from '../hooks/useOpeningHours';
-import Toast from '../components/Toast';
 import CheckoutModal from '../components/CheckoutModal';
 import PaymentModal from '../components/PaymentModal';
 
@@ -12,8 +11,6 @@ export default function Cart() {
     const { items, totalPrice, updateQuantity, removeItem, clearCart } = useCart();
     const navigate = useNavigate();
     const { isOpen, statusMessage, loading: openingHoursLoading } = useOpeningHours();
-    const [showToast, setShowToast] = useState(false);
-    const [toastMessage, setToastMessage] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     // Settings state
@@ -110,8 +107,56 @@ export default function Cart() {
             });
         } catch (error) {
             console.error('Error submitting order:', error);
-            setToastMessage('Fehler beim Aufgeben der Bestellung');
-            setShowToast(true);
+            console.log('Error details:', {
+                message: (error as any)?.message,
+                orderCreated: (error as any)?.orderCreated,
+                orderId: (error as any)?.orderId
+            });
+            
+            // Close modals
+            setShowPaymentModal(false);
+            setShowCheckoutModal(false);
+            
+            // Check if order was created but email failed
+            const orderCreated = (error as any)?.orderCreated === true;
+            console.log('Order created flag:', orderCreated);
+            
+            if (orderCreated) {
+                // Order was saved successfully, but email failed
+                // Clear cart since order is in database
+                clearCart();
+                
+                // Navigate to error page with specific message
+                navigate('/order-error', {
+                    state: {
+                        orderCreated: true,
+                        errorMessage: 'Ihre Bestellung wurde erfolgreich erfasst, aber die E-Mail-Bestätigung konnte nicht versendet werden.',
+                        errorDetails: `Bestellung wurde in der Datenbank gespeichert.\nE-Mail-Versand fehlgeschlagen.\n\nZeitpunkt: ${new Date().toLocaleString('de-DE')}`
+                    }
+                });
+            } else {
+                // Order creation failed completely
+                // Determine error message
+                let errorMessage = 'Es gab ein Problem mit dem Server. Bitte versuchen Sie es später erneut.';
+                let errorDetails = '';
+                
+                if (error instanceof Error) {
+                    errorDetails = error.message;
+                    
+                    if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+                        errorMessage = 'Keine Verbindung zum Server möglich. Bitte überprüfen Sie Ihre Internetverbindung.';
+                    }
+                }
+                
+                // Navigate to error page
+                navigate('/order-error', {
+                    state: {
+                        orderCreated: false,
+                        errorMessage,
+                        errorDetails: `${errorDetails}\n\nZeitpunkt: ${new Date().toLocaleString('de-DE')}`
+                    }
+                });
+            }
         } finally {
             setSubmitting(false);
         }
@@ -313,12 +358,6 @@ export default function Cart() {
                 submitting={submitting}
             />
 
-            <Toast
-                show={showToast}
-                message={toastMessage}
-                type={toastMessage.includes('erfolgreich') ? 'success' : 'error'}
-                onClose={() => setShowToast(false)}
-            />
         </div>
     );
 }

@@ -1,7 +1,7 @@
 // Email Service using Node.js Backend
 // Backend server handles email sending via Nodemailer
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3003'
 
 export interface OrderEmailData {
     customer_name: string;
@@ -34,7 +34,9 @@ export interface OrderEmailData {
 // Send order emails via backend
 export async function sendOrderEmails(orderData: OrderEmailData) {
     try {
-        const response = await fetch(`${API_URL}/api/send-order-emails`, {
+        const endpoint = `${API_URL}/send-order-emails`;
+        
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -52,6 +54,7 @@ export async function sendOrderEmails(orderData: OrderEmailData) {
         return result
     } catch (error: any) {
         console.error('❌ Error sending order emails:', error)
-        // Don't throw error - order should still be processed even if emails fail
+        // Re-throw error so it can be handled by the order service
+        throw error;
     }
 }

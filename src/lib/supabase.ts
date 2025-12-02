@@ -273,6 +273,9 @@ export const orderService = {
         console.log('[orderService] Creating order:', orderData);
 
         try {
+            // TEST: Simulate database error (uncomment to test)
+            // throw new Error('Simulated database error');
+            
             // Create the order
             const { data: order, error: orderError } = await supabase
                 .from('orders')
@@ -346,32 +349,50 @@ export const orderService = {
                 console.error('[orderService] Error fetching delivery time:', error);
             }
 
-            // Send confirmation emails (non-blocking)
+            // Send confirmation emails
             console.log('[orderService] Sending order confirmation emails...');
-            sendOrderEmails({
-                customer_name: orderData.customer_name,
-                customer_email: orderData.customer_email,
-                customer_phone: orderData.customer_phone,
-                customer_address: orderData.customer_address,
-                order_number: order.id.toString(),
-                items: orderData.items,
-                subtotal: orderData.subtotal,
-                delivery_fee: orderData.delivery_fee,
-                discounts: orderData.discounts || [],
-                discount_amount: orderData.discount_amount || 0,
-                total_amount: orderData.total_amount,
-                payment_method: orderData.payment_method || 'cash',
-                payment_status: orderData.payment_status || 'pending',
-                notes: orderData.notes,
-                estimated_delivery_time: estimatedDeliveryTime
-            }).catch(emailError => {
-                console.error('[orderService] Email sending failed (non-critical):', emailError);
-                // Don't throw - order was created successfully
-            });
+            try {
+                await sendOrderEmails({
+                    customer_name: orderData.customer_name,
+                    customer_email: orderData.customer_email,
+                    customer_phone: orderData.customer_phone,
+                    customer_address: orderData.customer_address,
+                    order_number: order.id.toString(),
+                    items: orderData.items,
+                    subtotal: orderData.subtotal,
+                    delivery_fee: orderData.delivery_fee,
+                    discounts: orderData.discounts || [],
+                    discount_amount: orderData.discount_amount || 0,
+                    total_amount: orderData.total_amount,
+                    payment_method: orderData.payment_method || 'cash',
+                    payment_status: orderData.payment_status || 'pending',
+                    notes: orderData.notes,
+                    estimated_delivery_time: estimatedDeliveryTime
+                });
+            } catch (emailError) {
+                console.error('[orderService] Email sending failed:', emailError);
+                // Order was created successfully, but email failed
+                // Throw a specific error so the UI can show the appropriate message
+                const error = new Error('Order created but email confirmation failed');
+                (error as any).orderCreated = true;
+                (error as any).orderId = order.id;
+                console.log('[orderService] Throwing error with orderCreated flag:', {
+                    message: error.message,
+                    orderCreated: (error as any).orderCreated,
+                    orderId: (error as any).orderId
+                });
+                throw error;
+            }
 
             return order;
         } catch (error) {
             console.error('[orderService] Error:', error);
+            // Check if this is an email error (order was created successfully)
+            if ((error as any).orderCreated === true) {
+                // Re-throw with the flag intact
+                throw error;
+            }
+            // For other errors, just throw
             throw error;
         }
     },

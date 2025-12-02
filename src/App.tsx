@@ -18,6 +18,7 @@ import AGB from './pages/user/AGB';
 import Datenschutz from './pages/user/Datenschutz';
 import Impressum from './pages/user/Impressum';
 import OrderSuccess from './pages/OrderSuccess';
+import OrderError from './pages/OrderError';
 import './index.css';
 
 
@@ -65,6 +66,7 @@ function AppRoutes() {
         <Route path="menu" element={<Menu />} />
         <Route path="cart" element={<Cart />} />
         <Route path="order-success" element={<OrderSuccess />} />
+        <Route path="order-error" element={<OrderError />} />
         <Route path="login" element={<Login />} />
 
         {/* User Routes */}

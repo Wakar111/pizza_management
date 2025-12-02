@@ -37,17 +37,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return isAdminUser;
             }
 
-            // Fallback to admin_users table
-            const { data, error } = await supabase
-                .from('admin_users')
-                .select('*')
-                .eq('user_id', userId)
-                .single();
-
-            const isAdminUser = !error && !!data;
-            setIsAdmin(isAdminUser);
-            console.log('[Auth] Admin status from admin_users table:', isAdminUser);
-            return isAdminUser;
+            // No profile found or error
+            console.log('[Auth] No profile found or error:', profileError);
+            setIsAdmin(false);
+            return false;
         } catch (err) {
             console.error('[Auth] Error checking admin status:', err);
             setIsAdmin(false);
@@ -164,10 +157,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 }
 
-export function useAuth() {
+export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
-}
+};
