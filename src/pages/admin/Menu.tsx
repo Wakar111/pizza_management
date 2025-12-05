@@ -755,18 +755,18 @@ export default function Menu() {
                                 </div>
 
                                 {/* Modal Footer */}
-                                <div className="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex gap-3 rounded-b-lg">
+                                <div className="sticky bottom-0 bg-gray-50 border-t px-4 py-3 sm:px-6 sm:py-4 flex gap-2 sm:gap-3 rounded-b-lg">
                                     <button
                                         type="button"
                                         onClick={closeModal}
-                                        className="flex-1 px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                                        className="flex-1 px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-gray-700 bg-white border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                                     >
                                         Abbrechen
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="flex-1 px-4 py-2.5 text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                        className="flex-1 px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                                     >
                                         {saving ? 'Wird gespeichert...' : 'Speichern'}
                                     </button>
