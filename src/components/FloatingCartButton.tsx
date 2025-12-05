@@ -4,7 +4,7 @@ import { formatPrice } from '../utils/format';
 
 export default function FloatingCartButton() {
     const navigate = useNavigate();
-    const { items, totalItems, totalPrice } = useCart();
+    const { totalItems, totalPrice } = useCart();
 
     // Don't show if cart is empty
     if (totalItems === 0) {
