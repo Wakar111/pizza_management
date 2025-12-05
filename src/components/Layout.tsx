@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -8,6 +8,8 @@ export default function Layout() {
     const { totalItems, clearCart } = useCart();
     const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
+    const menuButtonRef = useRef<HTMLButtonElement>(null);
 
     const handleSignOut = async () => {
         try {
@@ -18,6 +20,24 @@ export default function Layout() {
             console.error('Error signing out:', error);
         }
     };
+
+    // Close mobile menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (
+                mobileMenuOpen &&
+                mobileMenuRef.current &&
+                menuButtonRef.current &&
+                !mobileMenuRef.current.contains(event.target as Node) &&
+                !menuButtonRef.current.contains(event.target as Node)
+            ) {
+                setMobileMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [mobileMenuOpen]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -34,7 +54,7 @@ export default function Layout() {
                                 <div className="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                                     Hot Pizza
                                 </div>
-                                <div className="text-xs text-gray-500 -mt-1">Authentische Küche</div>
+                                <div className="hidden md:block text-xs text-gray-500 -mt-1">Authentische Küche</div>
                             </div>
                         </Link>
 
@@ -134,10 +154,10 @@ export default function Layout() {
                                     {isAdmin && (
                                         <Link
                                             to="/admin"
-                                            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                            className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-2 py-1.5 md:px-4 md:py-2 rounded-full text-sm md:text-base font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
                                         >
-                                            <span className="flex items-center space-x-2">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <span className="flex items-center space-x-1 md:space-x-2">
+                                                <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 </svg>
@@ -145,15 +165,9 @@ export default function Layout() {
                                             </span>
                                         </Link>
                                     )}
-                                    <div className="flex items-center space-x-2 text-gray-700">
-                                        <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
-                                            <span className="text-white text-sm font-bold">{user.email?.charAt(0).toUpperCase()}</span>
-                                        </div>
-                                        <span className="hidden sm:block text-sm">{user.email}</span>
-                                    </div>
                                     <button
                                         onClick={handleSignOut}
-                                        className="text-gray-500 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-all duration-200"
+                                        className="hidden md:block text-gray-500 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-all duration-200"
                                         title="Abmelden"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +178,7 @@ export default function Layout() {
                             ) : (
                                 <Link
                                     to="/login"
-                                    className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-6 py-2 rounded-full font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                    className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-3 py-1.5 md:px-6 md:py-2 rounded-full text-sm md:text-base font-medium transition-all duration-300 transform hover:scale-105 shadow-lg"
                                 >
                                     Anmelden
                                 </Link>
@@ -172,6 +186,7 @@ export default function Layout() {
 
                             {/* Mobile Menu Button */}
                             <button
+                                ref={menuButtonRef}
                                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                 className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
                             >
@@ -184,7 +199,7 @@ export default function Layout() {
 
                     {/* Mobile Navigation */}
                     {mobileMenuOpen && (
-                        <div className="md:hidden py-4 border-t border-gray-100">
+                        <div ref={mobileMenuRef} className="md:hidden py-4 border-t border-gray-100">
                             <div className="flex flex-col space-y-2">
                                 {isAdmin ? (
                                     <>
@@ -230,6 +245,20 @@ export default function Layout() {
                                         >
                                             Abrechnungen 📊
                                         </Link>
+                                        {user && (
+                                            <button
+                                                onClick={() => {
+                                                    handleSignOut();
+                                                    setMobileMenuOpen(false);
+                                                }}
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mt-2 border-t border-gray-200"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                </svg>
+                                                <span>Abmelden</span>
+                                            </button>
+                                        )}
                                     </>
                                 ) : (
                                     <>
@@ -266,6 +295,20 @@ export default function Layout() {
                                                 </span>
                                             )}
                                         </Link>
+                                        {user && (
+                                            <button
+                                                onClick={() => {
+                                                    handleSignOut();
+                                                    setMobileMenuOpen(false);
+                                                }}
+                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 mt-2 border-t border-gray-200"
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                </svg>
+                                                <span>Abmelden</span>
+                                            </button>
+                                        )}
                                     </>
                                 )}
                             </div>

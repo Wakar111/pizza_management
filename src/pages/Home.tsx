@@ -9,6 +9,7 @@ import ExtrasModal from '../components/ExtrasModal';
 import Toast from '../components/Toast';
 import PromotionBanner from '../components/PromotionBanner';
 import WetPaintButton from '../components/WetPaintButton';
+import FloatingCartButton from '../components/FloatingCartButton';
 import type { MenuItem, Size } from '../types';
 
 export default function Home() {
@@ -92,12 +93,22 @@ export default function Home() {
             {/* Promotion Banner */}
             <PromotionBanner />
             {/* Hero Section */}
-            <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/70"></div>
+            <section className="relative min-h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden py-12 md:py-0">
+                {/* Background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/70 md:bg-gradient-to-br md:from-black/70 md:via-black/50 md:to-black/70"></div>
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                     style={{ backgroundImage: 'linear-gradient(45deg, #f97316 0%, #ea580c 25%, #c2410c 50%, #9a3412 75%, #7c2d12 100%)' }}
                 ></div>
+                
+                {/* Pizza background image - faded on mobile only */}
+                <div className="absolute inset-0 flex items-center justify-end pr-0 opacity-30 md:hidden">
+                    <img
+                        src="/pizza2.png"
+                        alt="Pizza Background"
+                        className="w-[400px] h-auto object-contain"
+                    />
+                </div>
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
                     <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -107,36 +118,36 @@ export default function Home() {
                             {!openingHoursLoading && !isOpen && (
                                 <Link
                                     to="/user/info#opening-hours"
-                                    className="mb-6 inline-flex items-center px-6 py-3 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-105 cursor-pointer bg-red-500/90 hover:bg-red-600/90"
+                                    className="mb-6 inline-flex items-center px-4 py-2 md:px-6 md:py-3 rounded-full backdrop-blur-md transition-all duration-300 hover:scale-105 cursor-pointer bg-red-500/90 hover:bg-red-600/90"
                                 >
-                                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg className="w-4 h-4 md:w-5 md:h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                     </svg>
-                                    <span className="font-semibold text-white">{statusMessage}</span>
+                                    <span className="font-semibold text-white text-sm md:text-base">{statusMessage}</span>
                                 </Link>
                             )}
 
-                            <div className="mb-8">
-                                <h1 className="text-5xl md:text-6xl font-bold mb-4 leading-tight">
+                            <div className="mb-6 md:mb-8">
+                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4 leading-tight">
                                     Restaurant
                                     <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-orange-200">
                                         Hot Pizza
                                     </span>
                                 </h1>
-                                <p className="text-lg md:text-xl mb-8 max-w-2xl leading-relaxed">
+                                <p className="text-base md:text-lg lg:text-xl mb-6 md:mb-8 max-w-2xl leading-relaxed">
                                     Erleben Sie authentische Küche mit den frischesten Zutaten,
                                     meisterhaft zubereitet und mit Leidenschaft serviert
                                 </p>
                             </div>
 
-                            <div className="flex flex-col sm:flex-row gap-4 items-start">
+                            <div className="flex flex-col sm:flex-row gap-4 items-start mb-8 md:mb-0">
                                 <WetPaintButton to="/menu">
                                     Jetzt bestellen
                                 </WetPaintButton>
                             </div>
                         </div>
 
-                        {/* Right side: Pizza image */}
+                        {/* Right side: Pizza image - visible on desktop only */}
                         <div className="hidden md:flex justify-center items-center">
                             <img
                                 src="/pizza2.png"
@@ -282,6 +293,9 @@ export default function Home() {
                 message="Artikel zum Warenkorb hinzugefügt!"
                 onClose={() => setShowToast(false)}
             />
+
+            {/* Floating Cart Button */}
+            <FloatingCartButton />
         </div>
     );
 }

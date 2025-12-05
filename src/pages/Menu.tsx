@@ -5,6 +5,7 @@ import { formatPrice, getCategoryClass } from '../utils/format';
 import SizeSelectionModal from '../components/SizeSelectionModal';
 import ExtrasModal from '../components/ExtrasModal';
 import Toast from '../components/Toast';
+import FloatingCartButton from '../components/FloatingCartButton';
 import type { MenuItem, Size } from '../types';
 
 export default function Menu() {
@@ -220,6 +221,9 @@ export default function Menu() {
                 message="Artikel zum Warenkorb hinzugefügt!"
                 onClose={() => setShowToast(false)}
             />
+
+            {/* Floating Cart Button */}
+            <FloatingCartButton />
         </div>
     );
 }
