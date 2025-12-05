@@ -283,8 +283,8 @@ export default function Settings() {
         <div className="admin-settings-page">
             <div className="max-w-3xl mx-auto px-4 py-8">
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-2">Einstellungen</h1>
-                    <p className="text-gray-600">Verwalten Sie globale Einstellungen für Ihr Restaurant.</p>
+                    <h1 className="text-3xl sm:text-4xl font-bold mb-2">Einstellungen</h1>
+                    <p className="text-sm sm:text-base text-gray-600">Verwalten Sie globale Einstellungen für Ihr Restaurant.</p>
                 </div>
 
                 {loading ? (
@@ -297,14 +297,14 @@ export default function Settings() {
                         {/* Discount Management Section */}
                         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
                             <div className="flex justify-between items-center pb-4 border-b border-gray-100">
-                                <h2 className="text-xl font-semibold text-gray-900">🎁 Rabatt-Aktionen</h2>
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">🎁 Rabatt-Aktionen</h2>
                                 <button
                                     onClick={() => {
                                         setEditingDiscount(null);
                                         setDiscountForm({ name: '', percentage: null, startDate: '', endDate: '', enabled: true });
                                         setShowDiscountForm(!showDiscountForm);
                                     }}
-                                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
+                                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
                                 >
                                     {showDiscountForm ? 'Abbrechen' : '+ Neue Aktion'}
                                 </button>
@@ -388,7 +388,7 @@ export default function Settings() {
                                     <div className="mt-4 flex justify-end">
                                         <button
                                             onClick={handleAddDiscount}
-                                            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                                            className="px-4 py-1.5 sm:px-6 sm:py-2 text-sm sm:text-base bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
                                         >
                                             {editingDiscount ? 'Aktualisieren' : 'Hinzufügen'}
                                         </button>
@@ -442,16 +442,16 @@ export default function Settings() {
                                                                     {statusLabels[status]}
                                                                 </span>
                                                             </td>
-                                                            <td className="px-4 py-3 text-sm text-right space-x-2">
+                                                            <td className="px-4 py-3 text-xs sm:text-sm text-right space-x-2">
                                                                 <button
                                                                     onClick={() => handleEditDiscount(discount)}
-                                                                    className="text-amber-600 hover:text-amber-800 font-medium"
+                                                                    className="text-amber-600 hover:text-amber-800 font-medium text-xs sm:text-sm"
                                                                 >
                                                                     Bearbeiten
                                                                 </button>
                                                                 <button
                                                                     onClick={() => handleDeleteDiscount(discount.id)}
-                                                                    className="text-red-600 hover:text-red-800 font-medium"
+                                                                    className="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm"
                                                                 >
                                                                     Löschen
                                                                 </button>
@@ -469,8 +469,8 @@ export default function Settings() {
 
 
                         {/* Opening Hours Section */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h2 className="text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-100">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-100">
                                 🕐 Öffnungszeiten
                             </h2>
                             <OpeningHoursManager onSave={showNotification} />
@@ -594,12 +594,12 @@ export default function Settings() {
                             </div>
 
                             {/* Action Buttons */}
-                            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end space-x-4">
+                            <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3 sm:space-x-4">
                                 <button
                                     type="button"
                                     onClick={resetSettings}
                                     disabled={!hasChanges() || saving}
-                                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${!hasChanges() || saving
+                                    className={`px-4 py-2 text-sm sm:text-base rounded-lg font-medium transition-colors ${!hasChanges() || saving
                                         ? 'text-gray-400 cursor-not-allowed'
                                         : 'text-gray-600 hover:bg-gray-100'
                                         }`}
@@ -609,7 +609,7 @@ export default function Settings() {
                                 <button
                                     type="submit"
                                     disabled={!hasChanges() || saving}
-                                    className={`px-6 py-2 rounded-lg font-medium text-white transition-colors shadow-sm ${!hasChanges() || saving
+                                    className={`px-4 py-2 sm:px-6 text-sm sm:text-base rounded-lg font-medium text-white transition-colors shadow-sm ${!hasChanges() || saving
                                         ? 'bg-gray-300 cursor-not-allowed'
                                         : 'bg-primary-600 hover:bg-primary-700'
                                         }`}

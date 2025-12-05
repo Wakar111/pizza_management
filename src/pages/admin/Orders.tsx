@@ -218,23 +218,23 @@ export default function Orders() {
     return (
         <div className="admin-orders-page">
             <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-4xl font-bold">Bestellungen</h1>
+                <div className="flex justify-between items-center gap-4 mb-8">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Bestellungen</h1>
                     <button
                         onClick={loadOrders}
-                        className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 transition-colors"
                         title="Aktualisieren"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </button>
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div className="flex flex-col gap-4 mb-6">
                     {/* Status Filter Tabs */}
-                    <div className="flex overflow-x-auto pb-2 sm:pb-0 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2">
                         {[
                             { id: 'all', label: 'Alle' },
                             { id: 'pending', label: 'Wartend' },
@@ -245,13 +245,13 @@ export default function Orders() {
                             <button
                                 key={tab.id}
                                 onClick={() => setFilterStatus(tab.id)}
-                                className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${filterStatus === tab.id
+                                className={`px-3 py-2 sm:px-4 text-sm sm:text-base rounded-lg font-medium transition-colors ${filterStatus === tab.id
                                     ? 'bg-primary-600 text-white'
                                     : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
                                     }`}
                             >
                                 {tab.label}
-                                <span className="ml-2 text-xs opacity-75 bg-black bg-opacity-10 px-1.5 py-0.5 rounded-full">
+                                <span className="ml-1 sm:ml-2 text-xs opacity-75 bg-black bg-opacity-10 px-1.5 py-0.5 rounded-full">
                                     {tab.id === 'all'
                                         ? orders.length
                                         : orders.filter(o => o.status === tab.id).length}
@@ -261,12 +261,12 @@ export default function Orders() {
                     </div>
 
                     {/* Date Range Filter */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                         <span className="text-sm text-gray-600 font-medium whitespace-nowrap">Zeitraum:</span>
                         <select
                             value={dateFilter}
                             onChange={(e) => setDateFilter(e.target.value)}
-                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 flex-1 sm:flex-none"
                         >
                             <option value="all">Alle</option>
                             <option value="today">Heute</option>
@@ -297,9 +297,9 @@ export default function Orders() {
                         {filteredOrders.map(order => (
                             <div key={order.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                                 {/* Order Header */}
-                                <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center gap-4">
-                                    <div className="flex items-center gap-4">
-                                        <span className="font-mono font-bold text-gray-500">#{String(order.id).substring(0, 8)}</span>
+                                <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+                                    <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                                        <span className="font-mono text-sm sm:text-base font-bold text-gray-500">#{String(order.id).substring(0, 8)}</span>
                                         <span className="text-sm text-gray-500 flex items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -307,11 +307,11 @@ export default function Orders() {
                                             {formatDate(order.created_at)}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
                                         <select
                                             value={order.status}
                                             onChange={(e) => updateStatus(order.id, e.target.value)}
-                                            className={`text-sm font-medium px-3 py-1.5 rounded-lg border-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none cursor-pointer ${getStatusColor(order.status)}`}
+                                            className={`text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg border-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none cursor-pointer flex-1 sm:flex-none ${getStatusColor(order.status)}`}
                                         >
                                             <option value="pending">Wartend</option>
                                             <option value="preparing">In Zubereitung</option>
@@ -332,7 +332,7 @@ export default function Orders() {
                                 </div>
 
                                 {/* Order Content */}
-                                <div className="p-6 grid md:grid-cols-2 gap-8">
+                                <div className="p-4 sm:p-6 grid md:grid-cols-2 gap-6 md:gap-8">
                                     {/* Customer Details */}
                                     <div>
                                         <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Kunde</h4>

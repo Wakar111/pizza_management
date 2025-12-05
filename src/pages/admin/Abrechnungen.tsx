@@ -281,24 +281,24 @@ export default function Abrechnungen() {
     return (
         <div className="admin-abrechnungen-page">
             <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex justify-between items-start gap-4 mb-8">
                     <div>
-                        <h1 className="text-4xl font-bold">Abrechnung</h1>
-                        <p className="text-gray-600 mt-2">Übersicht für die Buchhaltung</p>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Abrechnung</h1>
+                        <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1 sm:mt-2">Übersicht für die Buchhaltung</p>
                     </div>
                     <button
                         onClick={loadOrders}
-                        className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 transition-colors"
                         title="Aktualisieren"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                     </button>
                 </div>
 
                 {/* Filter Section */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
                         <div className="flex-1">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Zeitraum</label>
@@ -369,7 +369,7 @@ export default function Abrechnungen() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-blue-100 text-sm font-medium">Gesamtumsatz</p>
-                                <p className="text-3xl font-bold mt-2">€{totals.total.toFixed(2)}</p>
+                                <p className="text-2xl sm:text-3xl font-bold mt-2">€{totals.total.toFixed(2)}</p>
                                 <p className="text-blue-100 text-sm mt-1">{totals.count} Bestellungen</p>
                             </div>
                             <div className="bg-white bg-opacity-20 p-3 rounded-lg">
@@ -384,7 +384,7 @@ export default function Abrechnungen() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-green-100 text-sm font-medium">Barzahlungen</p>
-                                <p className="text-3xl font-bold mt-2">€{totals.cash.toFixed(2)}</p>
+                                <p className="text-2xl sm:text-3xl font-bold mt-2">€{totals.cash.toFixed(2)}</p>
                                 <p className="text-green-100 text-sm mt-1">{totals.cashCount} Bestellungen</p>
                             </div>
                             <div className="bg-white bg-opacity-20 p-3 rounded-lg">
@@ -399,7 +399,7 @@ export default function Abrechnungen() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-purple-100 text-sm font-medium">Online Bezahlt</p>
-                                <p className="text-3xl font-bold mt-2">€{totals.online.toFixed(2)}</p>
+                                <p className="text-2xl sm:text-3xl font-bold mt-2">€{totals.online.toFixed(2)}</p>
                                 <p className="text-purple-100 text-sm mt-1">{totals.onlineCount} Bestellungen</p>
                             </div>
                             <div className="bg-white bg-opacity-20 p-3 rounded-lg">

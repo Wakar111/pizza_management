@@ -340,26 +340,26 @@ export default function Menu() {
     return (
         <div className="admin-menu-page">
             <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-4xl font-bold">Menü verwalten</h1>
+                <div className="flex justify-between items-center gap-4 mb-8">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Menü verwalten</h1>
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
+                        className="bg-primary-600 text-white px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-1.5 sm:gap-2 text-sm sm:text-base whitespace-nowrap"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                         </svg>
-                        Neues Gericht hinzufügen
+                        Neues Gericht
                     </button>
                 </div>
 
                 {/* Category Filter Tabs */}
-                <div className="mb-6 flex flex-wrap gap-2">
+                <div className="mb-6 grid grid-cols-2 sm:grid-cols-3 md:flex md:flex-wrap gap-2">
                     {categories.map(category => (
                         <button
                             key={category}
                             onClick={() => setSelectedCategory(category)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${selectedCategory === category
+                            className={`px-3 py-2 sm:px-4 text-sm sm:text-base rounded-lg font-medium transition-colors ${selectedCategory === category
                                 ? 'bg-amber-500 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}

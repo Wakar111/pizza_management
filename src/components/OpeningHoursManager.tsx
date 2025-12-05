@@ -187,7 +187,7 @@ export default function OpeningHoursManager({ onSave }: OpeningHoursManagerProps
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-lg font-semibold transition-all shadow-md disabled:cursor-not-allowed"
+                    className="px-2 py-1 md:px-6 md:py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-lg font-semibold transition-all shadow-md disabled:cursor-not-allowed"
                 >
                     {saving ? 'Speichert...' : 'Öffnungszeiten speichern'}
                 </button>

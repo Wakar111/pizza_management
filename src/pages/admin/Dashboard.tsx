@@ -275,51 +275,51 @@ export default function Dashboard() {
             <div className="max-w-7xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-6">Admin Dashboard</h1>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6">Admin Dashboard</h1>
                 </div>
 
                 {/* Dashboard Overview */}
                 <div>
                     {/* Statistics Cards */}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
                             <div className="flex items-center">
-                                <div className="text-3xl mr-4">📊</div>
+                                <div className="text-2xl sm:text-3xl mr-3 sm:mr-4">📊</div>
                                 <div>
-                                    <h3 className="text-lg font-semibold">Bestellungen heute</h3>
-                                    <p className="text-2xl font-bold text-amber-600">{todayOrders}</p>
+                                    <h3 className="text-base sm:text-lg font-semibold">Bestellungen heute</h3>
+                                    <p className="text-xl sm:text-2xl font-bold text-amber-600">{todayOrders}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
                             <div className="flex items-center">
-                                <div className="text-3xl mr-4">💰</div>
+                                <div className="text-2xl sm:text-3xl mr-3 sm:mr-4">💰</div>
                                 <div>
-                                    <h3 className="text-lg font-semibold">Umsatz heute</h3>
-                                    <p className="text-2xl font-bold text-green-600">€{todayRevenue.toFixed(2)}</p>
+                                    <h3 className="text-base sm:text-lg font-semibold">Umsatz heute</h3>
+                                    <p className="text-xl sm:text-2xl font-bold text-green-600">€{todayRevenue.toFixed(2)}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
                             <div className="flex items-center">
-                                <div className="text-3xl mr-4">🍽️</div>
+                                <div className="text-2xl sm:text-3xl mr-3 sm:mr-4">🍽️</div>
                                 <div>
-                                    <h3 className="text-lg font-semibold">Menüelemente</h3>
-                                    <p className="text-2xl font-bold text-blue-600">{totalMenuItems}</p>
+                                    <h3 className="text-base sm:text-lg font-semibold">Menüelemente</h3>
+                                    <p className="text-xl sm:text-2xl font-bold text-blue-600">{totalMenuItems}</p>
                                 </div>
                             </div>
                         </div>
 
                         <a 
                             href="/admin/abrechnungen"
-                            className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer block"
+                            className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer block"
                         >
                             <div className="flex items-center">
-                                <div className="text-3xl mr-4">📊</div>
+                                <div className="text-2xl sm:text-3xl mr-3 sm:mr-4">📊</div>
                                 <div>
-                                    <h3 className="text-lg font-semibold">Abrechnungen</h3>
+                                    <h3 className="text-base sm:text-lg font-semibold">Abrechnungen</h3>
                                     <p className="text-sm text-gray-500">Finanzübersicht anzeigen</p>
                                 </div>
                             </div>
@@ -327,9 +327,9 @@ export default function Dashboard() {
                     </div>
 
                     {/* Charts and Recent Orders */}
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                            <h2 className="text-2xl font-bold mb-4">Aktuelle Bestellungen</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
+                            <h2 className="text-xl sm:text-2xl font-bold mb-4">Aktuelle Bestellungen</h2>
                             {recentOrders.length === 0 ? (
                                 <div className="text-gray-500">
                                     Keine aktuellen Bestellungen

@@ -192,16 +192,16 @@ export default function Stammkunden() {
     return (
         <div className="admin-stammkunden-page">
             <div className="max-w-7xl mx-auto px-4 py-8">
-                <div className="flex justify-between items-center mb-8">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
                     <div>
-                        <h1 className="text-4xl font-bold mb-2">Stammkunden</h1>
-                        <p className="text-gray-600">Verwalten Sie Ihre Kundenkartei.</p>
+                        <h1 className="text-3xl sm:text-4xl font-bold mb-2">Stammkunden</h1>
+                        <p className="text-sm sm:text-base text-gray-600">Verwalten Sie Ihre Kundenkartei.</p>
                     </div>
                     <button
                         onClick={() => handleOpenModal(undefined, searchQuery)}
-                        className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
+                        className="bg-primary-600 text-white px-3 py-2 sm:px-4 text-sm sm:text-base rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2 justify-center sm:justify-start"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                         </svg>
                         Neuer Kunde
