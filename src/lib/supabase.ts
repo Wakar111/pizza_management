@@ -275,7 +275,7 @@ export const orderService = {
         try {
             // TEST: Simulate database error (uncomment to test)
             // throw new Error('Simulated database error');
-            
+
             // Create the order
             const { data: order, error: orderError } = await supabase
                 .from('orders')
@@ -415,10 +415,14 @@ export const orderService = {
     },
 
     async updateOrderStatus(orderId: string, status: string) {
+        // Convert orderId to number if it's a string that looks like a number
+        // This is needed because int8 columns in Supabase need numeric comparison
+        const numericId = typeof orderId === 'string' ? parseInt(orderId, 10) : orderId;
+
         const { data, error } = await supabase
             .from('orders')
             .update({ status })
-            .eq('id', orderId)
+            .eq('id', numericId)
             .select();
 
         if (error) throw error;

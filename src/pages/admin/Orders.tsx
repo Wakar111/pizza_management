@@ -47,7 +47,7 @@ export default function Orders() {
         }
         return [];
     });
-    
+
     const [loading, setLoading] = useState(() => {
         try {
             const cached = localStorage.getItem('admin_orders');
@@ -82,10 +82,10 @@ export default function Orders() {
             console.log('[AdminOrders] Already loading, skipping...');
             return;
         }
-        
+
         loadingRef.current = true;
         setLoading(true);
-        
+
         try {
             const data = await orderService.getOrders();
             setOrders(data);
@@ -111,7 +111,7 @@ export default function Orders() {
     useEffect(() => {
         // Load data immediately on mount
         loadOrders();
-        
+
         // Don't reload on tab visibility change - it causes Supabase queries to hang
     }, []);
 
@@ -151,9 +151,16 @@ export default function Orders() {
     const updateStatus = async (orderId: string, newStatus: string) => {
         try {
             await orderService.updateOrderStatus(orderId, newStatus);
-            setOrders(prev => prev.map(order =>
+            const updatedOrders = orders.map(order =>
                 order.id === orderId ? { ...order, status: newStatus } : order
-            ));
+            );
+            setOrders(updatedOrders);
+            // Update localStorage to persist the change
+            try {
+                localStorage.setItem('admin_orders', JSON.stringify(updatedOrders));
+            } catch (err) {
+                console.error('[AdminOrders] Error updating localStorage:', err);
+            }
             showNotification(`Status auf "${getStatusText(newStatus)}" aktualisiert`, 'success');
         } catch (error: any) {
             console.error('[AdminOrders] Error updating status:', error);
