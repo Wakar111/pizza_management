@@ -709,6 +709,81 @@ export const settingsService = {
             console.error('Error getting active promotions:', error);
             return [];
         }
+    },
+
+    // Delivery Area Management
+    async getDeliveryAreas() {
+        try {
+            const { data, error } = await supabase
+                .from('restaurant_settings')
+                .select('id, plz, city')
+                .not('plz', 'is', null)
+                .not('city', 'is', null)
+                .order('plz');
+
+            if (error) throw error;
+            return data || [];
+        } catch (error) {
+            console.error('Error fetching delivery areas:', error);
+            return [];
+        }
+    },
+
+    async addDeliveryArea(plz: string, city: string) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            const { data, error } = await supabase
+                .from('restaurant_settings')
+                .insert({
+                    plz: plz.trim(),
+                    city: city.trim(),
+                    updated_by: user?.id
+                })
+                .select();
+
+            if (error) throw error;
+            return data[0];
+        } catch (error) {
+            console.error('Error adding delivery area:', error);
+            throw error;
+        }
+    },
+
+    async updateDeliveryArea(id: string, plz: string, city: string) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            const { data, error } = await supabase
+                .from('restaurant_settings')
+                .update({
+                    plz: plz.trim(),
+                    city: city.trim(),
+                    updated_by: user?.id
+                })
+                .eq('id', id)
+                .select();
+
+            if (error) throw error;
+            return data[0];
+        } catch (error) {
+            console.error('Error updating delivery area:', error);
+            throw error;
+        }
+    },
+
+    async deleteDeliveryArea(id: string) {
+        try {
+            const { error } = await supabase
+                .from('restaurant_settings')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error deleting delivery area:', error);
+            throw error;
+        }
     }
 };
 

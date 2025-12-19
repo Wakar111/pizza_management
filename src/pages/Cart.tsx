@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { orderService, settingsService, type Discount } from '../lib/supabase';
 import { formatPrice } from '../utils/format';
@@ -8,7 +8,7 @@ import CheckoutModal from '../components/CheckoutModal';
 import PaymentModal from '../components/PaymentModal';
 
 export default function Cart() {
-    const { items, totalPrice, updateQuantity, removeItem, clearCart } = useCart();
+    const { items, totalPrice, updateQuantity, removeItem, removeExtra, clearCart } = useCart();
     const navigate = useNavigate();
     const { isOpen, statusMessage, loading: openingHoursLoading } = useOpeningHours();
     const [submitting, setSubmitting] = useState(false);
@@ -49,7 +49,7 @@ export default function Cart() {
 
     // Filter discounts that have a percentage (only those apply to cart)
     const applicableDiscounts = activeDiscounts.filter(discount => discount.percentage !== null && discount.percentage > 0);
-    
+
     // Calculate total discount by summing all applicable discount percentages
     const totalDiscountPercentage = applicableDiscounts.reduce((sum, discount) => sum + (discount.percentage || 0), 0);
     const totalDiscountAmount = (totalPrice * totalDiscountPercentage) / 100;
@@ -112,20 +112,20 @@ export default function Cart() {
                 orderCreated: (error as any)?.orderCreated,
                 orderId: (error as any)?.orderId
             });
-            
+
             // Close modals
             setShowPaymentModal(false);
             setShowCheckoutModal(false);
-            
+
             // Check if order was created but email failed
             const orderCreated = (error as any)?.orderCreated === true;
             console.log('Order created flag:', orderCreated);
-            
+
             if (orderCreated) {
                 // Order was saved successfully, but email failed
                 // Clear cart since order is in database
                 clearCart();
-                
+
                 // Navigate to error page with specific message
                 navigate('/order-error', {
                     state: {
@@ -139,15 +139,15 @@ export default function Cart() {
                 // Determine error message
                 let errorMessage = 'Es gab ein Problem mit dem Server. Bitte versuchen Sie es später erneut.';
                 let errorDetails = '';
-                
+
                 if (error instanceof Error) {
                     errorDetails = error.message;
-                    
+
                     if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
                         errorMessage = 'Keine Verbindung zum Server möglich. Bitte überprüfen Sie Ihre Internetverbindung.';
                     }
                 }
-                
+
                 // Navigate to error page
                 navigate('/order-error', {
                     state: {
@@ -199,9 +199,17 @@ export default function Cart() {
                                         <p className="text-sm text-gray-500">Extras:</p>
                                         <div className="flex flex-wrap gap-1 mt-1">
                                             {item.extras.map(extra => (
-                                                <span key={extra.id} className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded border border-orange-100">
-                                                    {extra.name} (+{formatPrice(extra.price)})
-                                                </span>
+                                                <button
+                                                    key={extra.id}
+                                                    onClick={() => removeExtra(item.cartItemId, extra.id)}
+                                                    className="group text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-100 hover:bg-orange-100 hover:border-orange-200 transition-colors flex items-center gap-1"
+                                                    title={`${extra.name} entfernen`}
+                                                >
+                                                    <span>{extra.name} (+{formatPrice(extra.price)})</span>
+                                                    <svg className="w-3 h-3 text-orange-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
                                             ))}
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">Extras gesamt: +{formatPrice(item.extrasTotal)}</p>
@@ -306,6 +314,22 @@ export default function Cart() {
                                     <span>Kostenlose Lieferung aktiviert!</span>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Delivery Area Hint */}
+                        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-start gap-2">
+                                <span className="text-lg">📍</span>
+                                <div>
+                                    <p className="text-sm font-medium text-blue-900 mb-1">Liefergebiete</p>
+                                    <p className="text-xs text-blue-700">
+                                        Sie können nur aus den vom Restaurant definierten Liefergebieten wählen.
+                                        <Link to="/user/info#delivery-areas" className="underline hover:text-blue-900 ml-1">
+                                            Verfügbare Gebiete ansehen
+                                        </Link>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Opening Status Indicator - Only show when closed */}

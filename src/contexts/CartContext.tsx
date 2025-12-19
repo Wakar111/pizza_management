@@ -10,6 +10,7 @@ interface CartContextType {
     addItem: (menuItem: MenuItem, selectedExtras?: Extra[], customTotalPrice?: number | null, size?: Size | null) => void;
     removeItem: (cartItemId: string) => void;
     updateQuantity: (cartItemId: string, quantity: number) => void;
+    removeExtra: (cartItemId: string, extraId: string) => void;
     clearCart: () => void;
 }
 
@@ -97,6 +98,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const removeExtra = (cartItemId: string, extraId: string) => {
+        setItems(currentItems =>
+            currentItems.map(item => {
+                if (item.cartItemId === cartItemId) {
+                    // Remove the extra from the extras array
+                    const updatedExtras = item.extras.filter(extra => extra.id !== extraId);
+
+                    // Recalculate extras total
+                    const newExtrasTotal = updatedExtras.reduce((sum, extra) => sum + extra.price, 0);
+
+                    // Recalculate total price (sizePrice + newExtrasTotal)
+                    const newTotalPrice = item.sizePrice + newExtrasTotal;
+
+                    return {
+                        ...item,
+                        extras: updatedExtras,
+                        extrasTotal: newExtrasTotal,
+                        totalPrice: newTotalPrice
+                    };
+                }
+                return item;
+            })
+        );
+    };
+
     const clearCart = () => {
         setItems([]);
     };
@@ -111,7 +137,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, [items]);
 
     return (
-        <CartContext.Provider value={{ items, totalItems, totalPrice, addItem, removeItem, updateQuantity, clearCart }}>
+        <CartContext.Provider value={{ items, totalItems, totalPrice, addItem, removeItem, updateQuantity, removeExtra, clearCart }}>
             {children}
         </CartContext.Provider>
     );

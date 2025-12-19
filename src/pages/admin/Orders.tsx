@@ -56,7 +56,7 @@ export default function Orders() {
             return false;
         }
     });
-    const [filterStatus, setFilterStatus] = useState('all');
+    const [filterStatus, setFilterStatus] = useState('pending');
     const [dateFilter, setDateFilter] = useState('week');
     const loadingRef = useRef(false);
 

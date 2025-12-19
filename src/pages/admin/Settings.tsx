@@ -10,6 +10,12 @@ interface SettingsData {
     estimated_delivery_time: string;
 }
 
+interface DeliveryArea {
+    id: string;
+    plz: string;
+    city: string;
+}
+
 export default function Settings() {
     // Initialize from localStorage
     const [settings, setSettings] = useState<SettingsData>(() => {
@@ -27,9 +33,9 @@ export default function Settings() {
             estimated_delivery_time: '40-50'
         };
     });
-    
+
     const [originalSettings, setOriginalSettings] = useState<SettingsData | null>(null);
-    
+
     const [loading, setLoading] = useState(() => {
         try {
             const cached = localStorage.getItem('admin_settings');
@@ -67,6 +73,14 @@ export default function Settings() {
     // Confirm Modal State
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [discountToDelete, setDiscountToDelete] = useState<string | null>(null);
+
+    // Delivery Area State
+    const [deliveryAreas, setDeliveryAreas] = useState<DeliveryArea[]>([]);
+    const [showDeliveryAreaForm, setShowDeliveryAreaForm] = useState(false);
+    const [editingArea, setEditingArea] = useState<DeliveryArea | null>(null);
+    const [deliveryAreaForm, setDeliveryAreaForm] = useState({ plz: '', city: '' });
+    const [showDeleteAreaModal, setShowDeleteAreaModal] = useState(false);
+    const [areaToDelete, setAreaToDelete] = useState<string | null>(null);
 
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
         setToastMessage(message);
@@ -121,6 +135,16 @@ export default function Settings() {
             setShowToast(true);
         }
     }, []);
+
+    const loadDeliveryAreas = useCallback(async () => {
+        try {
+            const data = await settingsService.getDeliveryAreas();
+            setDeliveryAreas(data);
+        } catch (error) {
+            console.error('Error loading delivery areas:', error);
+            showNotification('Fehler beim Laden der Liefergebiete', 'error');
+        }
+    }, [showNotification]);
 
     const handleAddDiscount = async () => {
         if (!discountForm.name) {
@@ -207,6 +231,59 @@ export default function Settings() {
         }
     };
 
+    const handleAddDeliveryArea = async () => {
+        if (!deliveryAreaForm.plz.trim() || !deliveryAreaForm.city.trim()) {
+            showNotification('Bitte PLZ und Stadt eingeben', 'error');
+            return;
+        }
+
+        try {
+            if (editingArea) {
+                // Update existing delivery area
+                await settingsService.updateDeliveryArea(editingArea.id, deliveryAreaForm.plz, deliveryAreaForm.city);
+                showNotification('Liefergebiet erfolgreich aktualisiert', 'success');
+            } else {
+                // Add new delivery area
+                await settingsService.addDeliveryArea(deliveryAreaForm.plz, deliveryAreaForm.city);
+                showNotification('Liefergebiet erfolgreich hinzugefügt', 'success');
+            }
+            await loadDeliveryAreas();
+            setDeliveryAreaForm({ plz: '', city: '' });
+            setEditingArea(null);
+            setShowDeliveryAreaForm(false);
+        } catch (error) {
+            console.error('Error saving delivery area:', error);
+            showNotification('Fehler beim Speichern', 'error');
+        }
+    };
+
+    const handleEditDeliveryArea = (area: DeliveryArea) => {
+        setEditingArea(area);
+        setDeliveryAreaForm({ plz: area.plz, city: area.city });
+        setShowDeliveryAreaForm(true);
+    };
+
+    const handleDeleteDeliveryArea = (areaId: string) => {
+        setAreaToDelete(areaId);
+        setShowDeleteAreaModal(true);
+    };
+
+    const confirmDeleteArea = async () => {
+        if (!areaToDelete) return;
+
+        try {
+            await settingsService.deleteDeliveryArea(areaToDelete);
+            showNotification('Liefergebiet gelöscht', 'success');
+            await loadDeliveryAreas();
+        } catch (error) {
+            console.error('Error deleting delivery area:', error);
+            showNotification('Fehler beim Löschen', 'error');
+        } finally {
+            setShowDeleteAreaModal(false);
+            setAreaToDelete(null);
+        }
+    };
+
 
     const getDiscountStatus = (discount: Discount) => {
         if (!discount.enabled) return 'disabled';
@@ -275,9 +352,10 @@ export default function Settings() {
         // Load data immediately on mount
         loadSettings();
         loadDiscounts();
-        
+        loadDeliveryAreas();
+
         // Don't reload on tab visibility change - it causes Supabase queries to hang
-    }, []);
+    }, [loadSettings, loadDiscounts, loadDeliveryAreas]);
 
     return (
         <div className="admin-settings-page">
@@ -340,9 +418,9 @@ export default function Settings() {
                                                 value={discountForm.percentage ?? ''}
                                                 onChange={(e) => {
                                                     const value = e.target.value.trim();
-                                                    setDiscountForm({ 
-                                                        ...discountForm, 
-                                                        percentage: value === '' ? null : parseFloat(value) 
+                                                    setDiscountForm({
+                                                        ...discountForm,
+                                                        percentage: value === '' ? null : parseFloat(value)
                                                     });
                                                 }}
                                                 placeholder="z.B. 20"
@@ -464,16 +542,6 @@ export default function Settings() {
                                     </div>
                                 )}
                             </div>
-                        </div>
-
-
-
-                        {/* Opening Hours Section */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
-                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-100">
-                                🕐 Öffnungszeiten
-                            </h2>
-                            <OpeningHoursManager onSave={showNotification} />
                         </div>
 
                         {/* Delivery Conditions Section */}
@@ -618,6 +686,117 @@ export default function Settings() {
                                 </button>
                             </div>
                         </form>
+
+                        {/* Delivery Areas Section */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
+                            <div className="flex justify-between items-center pb-4 border-b border-gray-100">
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">📍 Liefergebiete</h2>
+                                <button
+                                    onClick={() => {
+                                        setEditingArea(null);
+                                        setDeliveryAreaForm({ plz: '', city: '' });
+                                        setShowDeliveryAreaForm(!showDeliveryAreaForm);
+                                    }}
+                                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                                >
+                                    {showDeliveryAreaForm ? 'Abbrechen' : '+ Neues Gebiet'}
+                                </button>
+                            </div>
+
+                            {/* Add/Edit Form */}
+                            {showDeliveryAreaForm && (
+                                <div className="mt-6 p-6 bg-blue-50 rounded-lg border border-blue-100">
+                                    <h3 className="text-lg font-semibold mb-4 text-gray-900">
+                                        {editingArea ? 'Liefergebiet bearbeiten' : 'Neues Liefergebiet'}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                PLZ
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={deliveryAreaForm.plz}
+                                                onChange={(e) => setDeliveryAreaForm({ ...deliveryAreaForm, plz: e.target.value })}
+                                                placeholder="z.B. 12345"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Stadt
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={deliveryAreaForm.city}
+                                                onChange={(e) => setDeliveryAreaForm({ ...deliveryAreaForm, city: e.target.value })}
+                                                placeholder="z.B. Berlin"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 flex justify-end">
+                                        <button
+                                            onClick={handleAddDeliveryArea}
+                                            className="px-4 py-1.5 sm:px-6 sm:py-2 text-sm sm:text-base bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                                        >
+                                            {editingArea ? 'Aktualisieren' : 'Hinzufügen'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Delivery Areas Table */}
+                            <div className="mt-6">
+                                {deliveryAreas.length === 0 ? (
+                                    <p className="text-center text-gray-500 py-8">Keine Liefergebiete vorhanden</p>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead className="bg-gray-50 border-b border-gray-200">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">PLZ</th>
+                                                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Stadt</th>
+                                                    <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">Aktionen</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200">
+                                                {deliveryAreas.map((area) => (
+                                                    <tr key={area.id} className="hover:bg-gray-50">
+                                                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">{area.plz}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-700">{area.city}</td>
+                                                        <td className="px-4 py-3 text-xs sm:text-sm text-right space-x-2">
+                                                            <button
+                                                                onClick={() => handleEditDeliveryArea(area)}
+                                                                className="text-amber-600 hover:text-amber-800 font-medium text-xs sm:text-sm"
+                                                            >
+                                                                ✏️ Bearbeiten
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteDeliveryArea(area.id)}
+                                                                className="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm"
+                                                            >
+                                                                Löschen
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Opening Hours Section */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-100">
+                                🕐 Öffnungszeiten
+                            </h2>
+                            <OpeningHoursManager onSave={showNotification} />
+                        </div>
+
+
                     </div>
                 )}
 
@@ -639,6 +818,19 @@ export default function Settings() {
                 onCancel={() => {
                     setShowConfirmModal(false);
                     setDiscountToDelete(null);
+                }}
+            />
+            <ConfirmModal
+                show={showDeleteAreaModal}
+                title="Liefergebiet löschen"
+                message="Möchten Sie dieses Liefergebiet wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+                confirmText="Löschen"
+                cancelText="Abbrechen"
+                type="danger"
+                onConfirm={confirmDeleteArea}
+                onCancel={() => {
+                    setShowDeleteAreaModal(false);
+                    setAreaToDelete(null);
                 }}
             />
         </div>

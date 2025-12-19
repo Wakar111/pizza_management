@@ -2,10 +2,19 @@
 import { Link } from 'react-router-dom';
 import { useOpeningHours } from '../../hooks/useOpeningHours';
 import { useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { settingsService } from '../../lib/supabase';
+
+interface DeliveryArea {
+    id: string;
+    plz: string;
+    city: string;
+}
 
 export default function UserInfo() {
     const { isOpen, statusMessage, openingHours, loading } = useOpeningHours();
+    const [deliveryAreas, setDeliveryAreas] = useState<DeliveryArea[]>([]);
+    const [loadingAreas, setLoadingAreas] = useState(false);
 
     const location = useLocation();
 
@@ -18,6 +27,22 @@ export default function UserInfo() {
             }
         }
     }, [location]);
+
+    useEffect(() => {
+        loadDeliveryAreas();
+    }, []);
+
+    const loadDeliveryAreas = async () => {
+        try {
+            setLoadingAreas(true);
+            const areas = await settingsService.getDeliveryAreas();
+            setDeliveryAreas(areas);
+        } catch (error) {
+            console.error('Error loading delivery areas:', error);
+        } finally {
+            setLoadingAreas(false);
+        }
+    };
 
     return (
         <div className="info-page">
@@ -77,8 +102,76 @@ export default function UserInfo() {
                 </div>
             </section>
 
+            {/* Delivery Areas Section */}
+            <section id="delivery-areas" className="py-20 bg-gray-50">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <div className="inline-block bg-primary-100 rounded-full p-3 mb-4">
+                            <span className="text-4xl">📍</span>
+                        </div>
+                        <h2 className="text-4xl font-bold mb-4 text-gray-900">Unsere Liefergebiete</h2>
+                        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                            Wir liefern gerne in die folgenden Gebiete direkt zu Ihnen nach Hause
+                        </p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-lg p-8">
+                        {loadingAreas ? (
+                            <div className="text-center py-12">
+                                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+                                <p className="mt-4 text-gray-600">Lade Liefergebiete...</p>
+                            </div>
+                        ) : deliveryAreas.length === 0 ? (
+                            <div className="text-center py-12">
+                                <p className="text-gray-600">Derzeit sind keine Liefergebiete verfügbar.</p>
+                                <p className="text-sm text-gray-500 mt-2">Bitte kontaktieren Sie uns für weitere Informationen.</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-200">
+                                    <span className="text-3xl">🚚</span>
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900">Verfügbare Lieferzonen</h3>
+                                        <p className="text-gray-600">Wir liefern in {deliveryAreas.length} {deliveryAreas.length === 1 ? 'Gebiet' : 'Gebiete'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                    {deliveryAreas.map((area) => (
+                                        <div
+                                            key={area.id}
+                                            className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200 hover:shadow-md transition-shadow"
+                                        >
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-xl">🚚</span>
+                                                <span className="font-bold text-primary-700 text-lg">{area.plz}</span>
+                                            </div>
+                                            <div className="text-gray-800 font-medium">{area.city}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-2xl">💡</span>
+                                        <div>
+                                            <h4 className="font-semibold text-blue-900 mb-1">Wichtiger Hinweis</h4>
+                                            <p className="text-sm text-blue-800">
+                                                Beim Bestellen können Sie nur aus den oben aufgeführten Liefergebieten wählen.
+                                                Falls Ihr Gebiet nicht aufgeführt ist, kontaktieren Sie uns bitte direkt.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            </section>
+
             {/* Contact & Hours Section */}
             <section id="opening-hours" className="py-20 bg-white">
+
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="grid md:grid-cols-2 gap-12">
                         {/* Contact Information */}

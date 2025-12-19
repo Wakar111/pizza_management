@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { settingsService } from '../lib/supabase';
 
 interface CheckoutModalProps {
     show: boolean;
     onClose: () => void;
     onNext: (customerData: any) => void;
+}
+
+interface DeliveryArea {
+    id: string;
+    plz: string;
+    city: string;
 }
 
 export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalProps) {
@@ -17,14 +24,55 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
         notes: ''
     });
 
+    const [deliveryAreas, setDeliveryAreas] = useState<DeliveryArea[]>([]);
+    const [selectedAreaId, setSelectedAreaId] = useState('');
+    const [loadingAreas, setLoadingAreas] = useState(false);
+
     const [errors, setErrors] = useState({
         name: '',
         phone: '',
-        zip: '',
-        city: '',
+        deliveryArea: '',
         street: '',
         email: ''
     });
+
+    // Load delivery areas when modal opens
+    useEffect(() => {
+        if (show) {
+            // Reset form and load delivery areas
+            setSelectedAreaId('');
+            setFormData({
+                name: '',
+                phone: '',
+                zip: '',
+                city: '',
+                street: '',
+                email: '',
+                notes: ''
+            });
+            setErrors({
+                name: '',
+                phone: '',
+                deliveryArea: '',
+                street: '',
+                email: ''
+            });
+            loadDeliveryAreas();
+        }
+    }, [show]);
+
+    const loadDeliveryAreas = async () => {
+        try {
+            setLoadingAreas(true);
+            const areas = await settingsService.getDeliveryAreas();
+            console.log('[CheckoutModal] Loaded delivery areas:', areas);
+            setDeliveryAreas(areas);
+        } catch (error) {
+            console.error('Error loading delivery areas:', error);
+        } finally {
+            setLoadingAreas(false);
+        }
+    };
 
     if (!show) return null;
 
@@ -37,8 +85,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
         const newErrors = {
             name: '',
             phone: '',
-            zip: '',
-            city: '',
+            deliveryArea: '',
             street: '',
             email: ''
         };
@@ -60,18 +107,9 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
             isValid = false;
         }
 
-        // Validate PLZ (only numbers)
-        if (!formData.zip.trim()) {
-            newErrors.zip = 'PLZ ist erforderlich';
-            isValid = false;
-        } else if (!/^\d+$/.test(formData.zip)) {
-            newErrors.zip = 'PLZ darf nur Zahlen enthalten';
-            isValid = false;
-        }
-
-        // Validate city (should be string, not empty)
-        if (!formData.city.trim()) {
-            newErrors.city = 'Stadt ist erforderlich';
+        // Validate delivery area selection
+        if (!selectedAreaId || !formData.zip || !formData.city) {
+            newErrors.deliveryArea = 'Bitte wählen Sie ein Liefergebiet aus';
             isValid = false;
         }
 
@@ -104,13 +142,32 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
         }
     };
 
-    const handleZipChange = (value: string) => {
-        // Allow only numbers
-        const sanitized = value.replace(/\D/g, '');
-        setFormData({ ...formData, zip: sanitized });
-        // Clear error when user starts typing
-        if (errors.zip) {
-            setErrors({ ...errors, zip: '' });
+    const handleDeliveryAreaChange = (areaId: string) => {
+        console.log('[CheckoutModal] Selected area ID:', areaId);
+        console.log('[CheckoutModal] Available areas:', deliveryAreas);
+        // Convert to string for comparison since select values are always strings
+        const selectedArea = deliveryAreas.find(area => String(area.id) === String(areaId));
+        console.log('[CheckoutModal] Found area:', selectedArea);
+
+        if (selectedArea) {
+            setSelectedAreaId(areaId);
+            setFormData({
+                ...formData,
+                zip: selectedArea.plz,
+                city: selectedArea.city
+            });
+            console.log('[CheckoutModal] Updated form data with PLZ:', selectedArea.plz, 'City:', selectedArea.city);
+            // Clear error when user selects
+            if (errors.deliveryArea) {
+                setErrors({ ...errors, deliveryArea: '' });
+            }
+        } else {
+            setSelectedAreaId('');
+            setFormData({
+                ...formData,
+                zip: '',
+                city: ''
+            });
         }
     };
 
@@ -161,34 +218,37 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">PLZ* (nur Zahlen)</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.zip}
-                                onChange={e => handleZipChange(e.target.value)}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${errors.zip ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ihre PLZ"
-                            />
-                            {errors.zip && <p className="text-red-500 text-sm mt-1">{errors.zip}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Stadt*</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.city}
-                                onChange={e => {
-                                    setFormData({ ...formData, city: e.target.value });
-                                    if (errors.city) setErrors({ ...errors, city: '' });
-                                }}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${errors.city ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                placeholder="Ihre Stadt"
-                            />
-                            {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Liefergebiet (PLZ & Stadt)*</label>
+                            {loadingAreas ? (
+                                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+                                    Lade Liefergebiete...
+                                </div>
+                            ) : deliveryAreas.length === 0 ? (
+                                <div className="w-full px-3 py-2 border border-red-300 rounded-lg bg-red-50 text-red-600 text-sm">
+                                    ⚠️ Keine Liefergebiete verfügbar. Bitte kontaktieren Sie uns.
+                                </div>
+                            ) : (
+                                <select
+                                    required
+                                    value={selectedAreaId}
+                                    onChange={e => handleDeliveryAreaChange(e.target.value)}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${errors.deliveryArea ? 'border-red-500' : 'border-gray-300'
+                                        }`}
+                                >
+                                    <option value="">Bitte wählen Sie Ihr Liefergebiet</option>
+                                    {deliveryAreas.map(area => (
+                                        <option key={area.id} value={area.id}>
+                                            {area.plz} - {area.city}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                            {errors.deliveryArea && <p className="text-red-500 text-sm mt-1">{errors.deliveryArea}</p>}
+                            {selectedAreaId && (
+                                <p className="text-green-600 text-sm mt-1">
+                                    ✓ Lieferung nach {formData.zip} {formData.city} verfügbar
+                                </p>
+                            )}
                         </div>
 
                         <div>
