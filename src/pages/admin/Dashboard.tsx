@@ -100,18 +100,6 @@ export default function Dashboard() {
         return [];
     });
 
-    const getStatusText = (status: string) => {
-        const statusMap: Record<string, string> = {
-            awaiting_confirmation: 'Wartet auf Bestätigung',
-            pending: 'Wartend',
-            preparing: 'In Zubereitung',
-            ready: 'Bereit',
-            delivered: 'Geliefert',
-            cancelled: 'Abgelehnt'
-        };
-        return statusMap[status] || status;
-    };
-
     // Load menu items count for dashboard
     const loadMenuItemsCount = useCallback(async () => {
         try {

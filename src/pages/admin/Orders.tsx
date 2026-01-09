@@ -216,16 +216,6 @@ export default function Orders() {
         return colors[status] || 'bg-gray-100 text-gray-800 border-gray-200';
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleString('de-DE', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
     const formatDeliveryTimeRange = (order: Order) => {
         const orderTime = new Date(order.created_at);
         
