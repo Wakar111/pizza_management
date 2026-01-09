@@ -14,5 +14,6 @@ export const RESTAURANT_INFO = {
     contact: {
         phone: '+49 30 12345678',
         email: 'info@pizza-restaurant.de'
-    }
+    },
+    taxNumber: 'DE1234567891'
 } as const;

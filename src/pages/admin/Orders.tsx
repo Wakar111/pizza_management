@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { orderService } from '../../lib/supabase';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import Toast from '../../components/Toast';
+import PrintReceiptModal from '../../components/PrintReceiptModal';
+import type { ReceiptOrder } from '../../components/PrintReceiptModal';
 
 interface OrderItem {
     id: string;
@@ -20,6 +22,7 @@ interface OrderItem {
 
 interface Order {
     id: string;
+    order_number: string;
     customer_name: string;
     customer_phone: string;
     customer_email?: string;
@@ -65,6 +68,10 @@ export default function Orders() {
     // Confirm Dialog State
     const [showConfirmDialog, setShowConfirmDialog] = useState(false);
     const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+
+    // Print Receipt Modal State
+    const [showPrintModal, setShowPrintModal] = useState(false);
+    const [orderToPrint, setOrderToPrint] = useState<ReceiptOrder | null>(null);
 
     // Toast State
     const [showToast, setShowToast] = useState(false);
@@ -192,6 +199,39 @@ export default function Orders() {
             setShowConfirmDialog(false);
             setOrderToDelete(null);
         }
+    };
+
+    const handlePrintReceipt = (order: Order) => {
+        // Transform order data to match PrintReceiptModal interface
+        const transformedOrder: ReceiptOrder = {
+            id: order.id,
+            order_number: order.order_number || String(order.id).substring(0, 8).toUpperCase(),
+            customer_name: order.customer_name,
+            customer_phone: order.customer_phone,
+            customer_address: order.customer_address,
+            customer_email: order.customer_email,
+            order_type: order.order_type,
+            payment_method: order.payment_method,
+            status: order.status,
+            created_at: order.created_at,
+            total_amount: order.total_amount,
+            subtotal: order.subtotal,
+            delivery_fee: order.delivery_fee,
+            notes: order.notes,
+            order_items: order.order_items.map(item => ({
+                id: parseInt(item.id),
+                name: item.menu_items.name,
+                quantity: item.quantity,
+                size: item.size_name || 'Standard',
+                price: item.size_price || item.menu_items.price,
+                extras: item.order_item_extras?.map(extra => ({
+                    name: extra.extra_name,
+                    price: extra.extra_price
+                })) || []
+            }))
+        };
+        setOrderToPrint(transformedOrder as any);
+        setShowPrintModal(true);
     };
 
     const getStatusText = (status: string) => {
@@ -352,7 +392,7 @@ export default function Orders() {
                                         <select
                                             value={order.status}
                                             onChange={(e) => updateStatus(order.id, e.target.value)}
-                                            className={`text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 rounded-lg border-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none cursor-pointer flex-1 sm:flex-none ${getStatusColor(order.status)}`}
+                                            className="flex-1 sm:flex-none text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                         >
                                             <option value="pending">Wartend</option>
                                             <option value="preparing">In Zubereitung</option>
@@ -360,6 +400,15 @@ export default function Orders() {
                                             <option value="delivered">Geliefert</option>
                                             <option value="cancelled">Storniert</option>
                                         </select>
+                                        <button
+                                            onClick={() => handlePrintReceipt(order)}
+                                            className="text-gray-400 hover:text-green-600 p-1 transition-colors"
+                                            title="Quittung drucken"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                            </svg>
+                                        </button>
                                         <button
                                             onClick={() => confirmDelete(order.id)}
                                             className="text-gray-400 hover:text-red-600 p-1 transition-colors"
@@ -519,6 +568,15 @@ export default function Orders() {
                     type="danger"
                     onConfirm={deleteOrder}
                     onCancel={() => setShowConfirmDialog(false)}
+                />
+
+                <PrintReceiptModal
+                    show={showPrintModal}
+                    order={orderToPrint}
+                    onClose={() => {
+                        setShowPrintModal(false);
+                        setOrderToPrint(null);
+                    }}
                 />
 
                 <Toast
