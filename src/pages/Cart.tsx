@@ -54,7 +54,8 @@ export default function Cart() {
     const totalDiscountPercentage = applicableDiscounts.reduce((sum, discount) => sum + (discount.percentage || 0), 0);
     const totalDiscountAmount = (totalPrice * totalDiscountPercentage) / 100;
     const subtotalAfterDiscount = totalPrice - totalDiscountAmount;
-    const actualDeliveryFee = subtotalAfterDiscount >= minimumOrderValue ? 0 : deliveryFee;
+    // No delivery fee for pickup orders, otherwise check minimum order value
+    const actualDeliveryFee = customerData?.orderType === 'pickup' ? 0 : (subtotalAfterDiscount >= minimumOrderValue ? 0 : deliveryFee);
     const totalAmount = subtotalAfterDiscount + actualDeliveryFee;
     const remainingForFreeDelivery = Math.max(0, minimumOrderValue - subtotalAfterDiscount);
 
@@ -283,14 +284,16 @@ export default function Cart() {
                                     )}
                                 </>
                             )}
-                            <div className="flex justify-between text-gray-600">
-                                <span>Liefergebühr:</span>
-                                {actualDeliveryFee === 0 ? (
-                                    <span className="text-green-600 font-medium">Kostenlos</span>
-                                ) : (
-                                    <span>{formatPrice(actualDeliveryFee)}</span>
-                                )}
-                            </div>
+                            {customerData?.orderType !== 'pickup' && (
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Liefergebühr:</span>
+                                    {actualDeliveryFee === 0 ? (
+                                        <span className="text-green-600 font-medium">Kostenlos</span>
+                                    ) : (
+                                        <span>{formatPrice(actualDeliveryFee)}</span>
+                                    )}
+                                </div>
+                            )}
                             <div className="border-t border-gray-100 pt-3 flex justify-between items-center">
                                 <span className="font-bold text-gray-900">Gesamt:</span>
                                 <span className="text-2xl font-bold text-gray-900">{formatPrice(totalAmount)}</span>

@@ -45,7 +45,8 @@ export default function PaymentModal({
     if (!show) return null;
 
     const subtotalAfterDiscount = totalPrice - totalDiscountAmount;
-    const totalAmount = subtotalAfterDiscount + deliveryFee;
+    // Don't add delivery fee for pickup orders
+    const totalAmount = subtotalAfterDiscount + (customerData.orderType === 'pickup' ? 0 : deliveryFee);
     const totalDiscountPercentage = discounts.reduce((sum, discount) => sum + (discount.percentage || 0), 0);
 
     const handleSubmit = () => {
@@ -93,10 +94,12 @@ export default function PaymentModal({
                                     )}
                                 </>
                             )}
-                            <div className="flex justify-between text-gray-600">
-                                <span>Liefergebühr:</span>
-                                <span>{formatPrice(deliveryFee)}</span>
-                            </div>
+                            {customerData.orderType !== 'pickup' && (
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Liefergebühr:</span>
+                                    <span>{formatPrice(deliveryFee)}</span>
+                                </div>
+                            )}
                             <div className="flex justify-between font-bold text-lg mt-2 text-gray-900">
                                 <span>Gesamt:</span>
                                 <span className="text-orange-600">{formatPrice(totalAmount)}</span>
