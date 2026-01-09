@@ -58,3 +58,30 @@ export async function sendOrderEmails(orderData: OrderEmailData) {
         throw error;
     }
 }
+
+// Send order cancellation email to customer
+export async function sendOrderCancellationEmail(orderData: OrderEmailData) {
+    try {
+        const endpoint = `${API_URL}/send-cancellation-email`;
+        
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        })
+
+        if (!response.ok) {
+            const error = await response.json()
+            throw new Error(error.details || 'Failed to send cancellation email')
+        }
+
+        const result = await response.json()
+        console.log('✅ Cancellation email sent successfully:', result)
+        return result
+    } catch (error: any) {
+        console.error('❌ Error sending cancellation email:', error)
+        throw error;
+    }
+}

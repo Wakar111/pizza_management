@@ -276,7 +276,7 @@ export const orderService = {
             // TEST: Simulate database error (uncomment to test)
             // throw new Error('Simulated database error');
 
-            // Create the order
+            // Create the order with awaiting_confirmation status (admin needs to confirm first)
             const { data: order, error: orderError } = await supabase
                 .from('orders')
                 .insert([{
@@ -290,7 +290,7 @@ export const orderService = {
                     total_amount: orderData.total_amount,
                     payment_method: orderData.payment_method || 'cash',
                     payment_status: orderData.payment_status || 'pending',
-                    status: orderData.status || 'pending',
+                    status: 'awaiting_confirmation', // Wait for admin confirmation
                     order_type: orderData.order_type || 'delivery',
                 }])
                 .select()
@@ -339,51 +339,9 @@ export const orderService = {
                 if (extrasError) throw extrasError;
             }
 
-            // Fetch estimated delivery time from settings
-            let estimatedDeliveryTime = '40-50';
-            try {
-                const settings = await settingsService.getSettings();
-                if (settings.estimated_delivery_time) {
-                    estimatedDeliveryTime = settings.estimated_delivery_time;
-                }
-            } catch (error) {
-                console.error('[orderService] Error fetching delivery time:', error);
-            }
-
-            // Send confirmation emails
-            console.log('[orderService] Sending order confirmation emails...');
-            try {
-                await sendOrderEmails({
-                    customer_name: orderData.customer_name,
-                    customer_email: orderData.customer_email,
-                    customer_phone: orderData.customer_phone,
-                    customer_address: orderData.customer_address,
-                    order_number: order.id.toString(),
-                    items: orderData.items,
-                    subtotal: orderData.subtotal,
-                    delivery_fee: orderData.delivery_fee,
-                    discounts: orderData.discounts || [],
-                    discount_amount: orderData.discount_amount || 0,
-                    total_amount: orderData.total_amount,
-                    payment_method: orderData.payment_method || 'cash',
-                    payment_status: orderData.payment_status || 'pending',
-                    notes: orderData.notes,
-                    estimated_delivery_time: estimatedDeliveryTime
-                });
-            } catch (emailError) {
-                console.error('[orderService] Email sending failed:', emailError);
-                // Order was created successfully, but email failed
-                // Throw a specific error so the UI can show the appropriate message
-                const error = new Error('Order created but email confirmation failed');
-                (error as any).orderCreated = true;
-                (error as any).orderId = order.id;
-                console.log('[orderService] Throwing error with orderCreated flag:', {
-                    message: error.message,
-                    orderCreated: (error as any).orderCreated,
-                    orderId: (error as any).orderId
-                });
-                throw error;
-            }
+            // NOTE: Emails are NOT sent here anymore
+            // Admin must confirm the order first, then emails will be sent via confirmOrder()
+            console.log('[orderService] Order created successfully, awaiting admin confirmation');
 
             return order;
         } catch (error) {
@@ -431,13 +389,197 @@ export const orderService = {
     },
 
     async deleteOrder(orderId: string) {
-        const { error } = await supabase
-            .from('orders')
-            .delete()
-            .eq('id', orderId);
+        try {
+            const numericId = typeof orderId === 'string' ? parseInt(orderId, 10) : orderId;
 
-        if (error) throw error;
-        return true;
+            // First, get all order items for this order
+            const { data: orderItems, error: itemsError } = await supabase
+                .from('order_items')
+                .select('id')
+                .eq('order_id', numericId);
+
+            if (itemsError) throw itemsError;
+
+            // Delete order_item_extras for each order item
+            if (orderItems && orderItems.length > 0) {
+                const orderItemIds = orderItems.map((item: any) => item.id);
+                
+                const { error: extrasError } = await supabase
+                    .from('order_item_extras')
+                    .delete()
+                    .in('order_item_id', orderItemIds);
+
+                if (extrasError) throw extrasError;
+            }
+
+            // Delete order items
+            const { error: deleteItemsError } = await supabase
+                .from('order_items')
+                .delete()
+                .eq('order_id', numericId);
+
+            if (deleteItemsError) throw deleteItemsError;
+
+            // Finally, delete the order
+            const { data: deletedOrder, error: deleteOrderError } = await supabase
+                .from('orders')
+                .delete()
+                .eq('id', numericId)
+                .select();
+
+            if (deleteOrderError) throw deleteOrderError;
+
+            if (!deletedOrder || deletedOrder.length === 0) {
+                throw new Error('Order deletion failed - no rows affected');
+            }
+
+            return true;
+        } catch (error) {
+            console.error('[orderService] Error deleting order:', error);
+            throw error;
+        }
+    },
+
+    async confirmOrder(orderId: string, estimatedTime: string) {
+        try {
+            // Convert orderId to number if needed
+            const numericId = typeof orderId === 'string' ? parseInt(orderId, 10) : orderId;
+
+            // Get full order details including items
+            const { data: order, error: fetchError } = await supabase
+                .from('orders')
+                .select(`
+                    *,
+                    order_items (
+                        *,
+                        menu_items (name, price),
+                        order_item_extras (*)
+                    )
+                `)
+                .eq('id', numericId)
+                .single();
+
+            if (fetchError) throw fetchError;
+            if (!order) throw new Error('Order not found');
+
+            // Extract minutes from estimatedTime string (e.g., "40 Minuten" -> 40)
+            const minutesMatch = estimatedTime.match(/\d+/);
+            const estimatedMinutes = minutesMatch ? parseInt(minutesMatch[0], 10) : 40;
+
+            // Update order status to pending (confirmed) and save estimated minutes
+            const { error: updateError } = await supabase
+                .from('orders')
+                .update({ 
+                    status: 'pending',
+                    estimated_minutes: estimatedMinutes
+                })
+                .eq('id', numericId);
+
+            if (updateError) throw updateError;
+
+            // Prepare items for email
+            const emailItems = order.order_items.map((item: any) => ({
+                name: item.menu_items.name,
+                quantity: item.quantity,
+                size: { name: item.size_name || 'Standard' },
+                extras: item.order_item_extras?.map((e: any) => ({ name: e.extra_name })) || [],
+                totalPrice: item.price
+            }));
+
+            // Send confirmation emails
+            console.log('[orderService] Sending order confirmation emails after admin confirmation...');
+            await sendOrderEmails({
+                customer_name: order.customer_name,
+                customer_email: order.customer_email,
+                customer_phone: order.customer_phone,
+                customer_address: order.customer_address,
+                order_number: order.id.toString(),
+                items: emailItems,
+                subtotal: order.subtotal,
+                delivery_fee: order.delivery_fee,
+                discounts: [],
+                discount_amount: 0,
+                total_amount: order.total_amount,
+                payment_method: order.payment_method,
+                payment_status: order.payment_status,
+                notes: order.notes,
+                estimated_delivery_time: estimatedTime
+            });
+
+            return { success: true, order };
+        } catch (error) {
+            console.error('[orderService] Error confirming order:', error);
+            throw error;
+        }
+    },
+
+    async declineOrder(orderId: string) {
+        try {
+            const numericId = typeof orderId === 'string' ? parseInt(orderId, 10) : orderId;
+
+            // Get full order details including items before updating status
+            const { data: order, error: fetchError } = await supabase
+                .from('orders')
+                .select(`
+                    *,
+                    order_items (
+                        *,
+                        menu_items (name, price),
+                        order_item_extras (*)
+                    )
+                `)
+                .eq('id', numericId)
+                .single();
+
+            if (fetchError) throw fetchError;
+            if (!order) throw new Error('Order not found');
+
+            // Update order status to cancelled
+            const { error } = await supabase
+                .from('orders')
+                .update({ status: 'cancelled' })
+                .eq('id', numericId);
+
+            if (error) throw error;
+            
+            console.log(`[orderService] Order #${numericId} status updated to 'cancelled'`);
+
+            // Prepare items for email
+            const emailItems = order.order_items.map((item: any) => ({
+                name: item.menu_items.name,
+                quantity: item.quantity,
+                size: { name: item.size_name || 'Standard' },
+                extras: item.order_item_extras?.map((e: any) => ({ name: e.extra_name })) || [],
+                totalPrice: item.price
+            }));
+
+            // Send cancellation email to customer
+            console.log('[orderService] Sending order cancellation email...');
+            const { sendOrderCancellationEmail } = await import('./emailService');
+            await sendOrderCancellationEmail({
+                customer_name: order.customer_name,
+                customer_email: order.customer_email,
+                customer_phone: order.customer_phone,
+                customer_address: order.customer_address,
+                order_number: order.id.toString(),
+                items: emailItems,
+                subtotal: order.subtotal,
+                delivery_fee: order.delivery_fee,
+                discounts: [],
+                discount_amount: 0,
+                total_amount: order.total_amount,
+                payment_method: order.payment_method,
+                payment_status: order.payment_status,
+                notes: order.notes
+            });
+
+            console.log('[orderService] Cancellation email sent...');
+
+            return { success: true };
+        } catch (error) {
+            console.error('[orderService] Error declining order:', error);
+            throw error;
+        }
     }
 };
 

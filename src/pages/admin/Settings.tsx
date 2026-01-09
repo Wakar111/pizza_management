@@ -3,6 +3,7 @@ import { settingsService, supabase, type Discount } from '../../lib/supabase';
 import Toast from '../../components/Toast';
 import ConfirmModal from '../../components/ConfirmModal';
 import OpeningHoursManager from '../../components/OpeningHoursManager';
+import NotificationSoundSettings from '../../components/NotificationSoundSettings';
 
 interface SettingsData {
     min_order_value_free_delivery: number;
@@ -817,13 +818,15 @@ export default function Settings() {
                         </div>
 
                         {/* Opening Hours Section */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-100">
                                 🕐 Öffnungszeiten
                             </h2>
                             <OpeningHoursManager onSave={showNotification} />
                         </div>
 
+                        {/* Notification Sound Settings */}
+                        <NotificationSoundSettings onSave={showNotification} />
 
                     </div>
                 )}

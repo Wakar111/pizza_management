@@ -33,6 +33,7 @@ interface Order {
     created_at: string;
     order_items: OrderItem[];
     order_type?: 'delivery' | 'pickup';
+    estimated_minutes?: number;
 }
 
 export default function Orders() {
@@ -179,7 +180,10 @@ export default function Orders() {
 
         try {
             await orderService.deleteOrder(orderToDelete);
-            setOrders(prev => prev.filter(order => order.id !== orderToDelete));
+            
+            // Reload orders from server to ensure UI is in sync
+            await loadOrders();
+            
             showNotification('Bestellung erfolgreich gelöscht', 'success');
         } catch (error: any) {
             console.error('[AdminOrders] Error deleting order:', error);
@@ -222,6 +226,37 @@ export default function Orders() {
         });
     };
 
+    const formatDeliveryTimeRange = (order: Order) => {
+        const orderTime = new Date(order.created_at);
+        
+        // Format order date and time
+        const dateStr = orderTime.toLocaleDateString('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+        
+        const timeStr = orderTime.toLocaleTimeString('de-DE', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        // If order has estimated time, calculate delivery window
+        if (order.estimated_minutes && order.status !== 'awaiting_confirmation') {
+            const deliveryTime = new Date(orderTime.getTime() + order.estimated_minutes * 60000);
+            const deliveryTimeStr = deliveryTime.toLocaleTimeString('de-DE', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // Add "min" text in frontend
+            return `${dateStr}, ${timeStr} - ${deliveryTimeStr} (${order.estimated_minutes} min)`;
+        }
+        
+        // Otherwise just show order time
+        return `${dateStr}, ${timeStr}`;
+    };
+
 
     return (
         <div className="admin-orders-page">
@@ -248,7 +283,8 @@ export default function Orders() {
                             { id: 'pending', label: 'Wartend' },
                             { id: 'preparing', label: 'In Zubereitung' },
                             { id: 'ready', label: 'Bereit' },
-                            { id: 'delivered', label: 'Geliefert' }
+                            { id: 'delivered', label: 'Geliefert' },
+                            { id: 'cancelled', label: 'Storniert' }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -319,7 +355,7 @@ export default function Orders() {
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
-                                            {formatDate(order.created_at)}
+                                            {formatDeliveryTimeRange(order)}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">

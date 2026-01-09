@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { supabase, orderService } from '../lib/supabase';
 
 export default function Layout() {
     const { user, isAdmin, signOut } = useAuth();
@@ -10,6 +11,10 @@ export default function Layout() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const mobileMenuRef = useRef<HTMLDivElement>(null);
     const menuButtonRef = useRef<HTMLButtonElement>(null);
+    
+    // Admin notification state
+    const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+    const [notificationInterval, setNotificationInterval] = useState<NodeJS.Timeout | null>(null);
 
     const handleSignOut = async () => {
         try {
@@ -39,6 +44,169 @@ export default function Layout() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [mobileMenuOpen]);
 
+    // Admin notification system - works from any page
+    useEffect(() => {
+        if (!isAdmin) return;
+
+        // Load initial pending orders count
+        const loadPendingCount = async () => {
+            try {
+                const orders = await orderService.getOrders();
+                const pending = orders.filter((o: any) => o.status === 'awaiting_confirmation').length;
+                setPendingOrdersCount(pending);
+            } catch (err) {
+                console.error('Error loading pending orders:', err);
+            }
+        };
+
+        loadPendingCount();
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Set up real-time subscription
+        const ordersSubscription = supabase
+            .channel('admin-orders-notifications')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'orders'
+                },
+                (payload: any) => {
+                    console.log('[Layout] Order change:', payload);
+
+                    // Stop sound when order is updated or deleted
+                    if (payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+                        const newStatus = payload.new?.status;
+                        if (newStatus === 'cancelled' || newStatus === 'pending' || payload.eventType === 'DELETE') {
+                            if (notificationInterval) {
+                                clearInterval(notificationInterval);
+                                setNotificationInterval(null);
+                            }
+                        }
+                    }
+
+                    // Play sound and show notification for new orders
+                    if (payload.eventType === 'INSERT') {
+                        const playNotificationSound = () => {
+                            try {
+                                let volume1 = 0.6, volume2 = 0.6, volume3 = 0.7;
+                                let freq1 = 880, freq2 = 1046, freq3 = 1318;
+                                let waveType: OscillatorType = 'sine';
+
+                                try {
+                                    const saved = localStorage.getItem('notification_sound_settings');
+                                    if (saved) {
+                                        const settings = JSON.parse(saved);
+                                        volume1 = settings.volume1 || 0.6;
+                                        volume2 = settings.volume2 || 0.6;
+                                        volume3 = settings.volume3 || 0.7;
+                                        freq1 = settings.freq1 || 880;
+                                        freq2 = settings.freq2 || 1046;
+                                        freq3 = settings.freq3 || 1318;
+                                        waveType = settings.waveType || 'sine';
+                                    }
+                                } catch (e) {
+                                    console.log('Using default notification settings');
+                                }
+
+                                const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+                                // First beep
+                                const oscillator = audioContext.createOscillator();
+                                const gainNode = audioContext.createGain();
+                                oscillator.connect(gainNode);
+                                gainNode.connect(audioContext.destination);
+                                oscillator.frequency.value = freq1;
+                                oscillator.type = waveType;
+                                gainNode.gain.setValueAtTime(volume1, audioContext.currentTime);
+                                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                                oscillator.start(audioContext.currentTime);
+                                oscillator.stop(audioContext.currentTime + 0.15);
+
+                                // Second beep
+                                const oscillator2 = audioContext.createOscillator();
+                                const gainNode2 = audioContext.createGain();
+                                oscillator2.connect(gainNode2);
+                                gainNode2.connect(audioContext.destination);
+                                oscillator2.frequency.value = freq2;
+                                oscillator2.type = waveType;
+                                gainNode2.gain.setValueAtTime(volume2, audioContext.currentTime + 0.2);
+                                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.35);
+                                oscillator2.start(audioContext.currentTime + 0.2);
+                                oscillator2.stop(audioContext.currentTime + 0.35);
+
+                                // Third beep
+                                const oscillator3 = audioContext.createOscillator();
+                                const gainNode3 = audioContext.createGain();
+                                oscillator3.connect(gainNode3);
+                                gainNode3.connect(audioContext.destination);
+                                oscillator3.frequency.value = freq3;
+                                oscillator3.type = waveType;
+                                gainNode3.gain.setValueAtTime(volume3, audioContext.currentTime + 0.4);
+                                gainNode3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+                                oscillator3.start(audioContext.currentTime + 0.4);
+                                oscillator3.stop(audioContext.currentTime + 0.6);
+                            } catch (e) {
+                                console.log('Audio play failed:', e);
+                            }
+                        };
+
+                        // Play immediately
+                        playNotificationSound();
+
+                        // Clear existing interval
+                        if (notificationInterval) {
+                            clearInterval(notificationInterval);
+                        }
+
+                        // Get repeat interval from localStorage
+                        let repeatInterval = 3000;
+                        try {
+                            const saved = localStorage.getItem('notification_sound_settings');
+                            if (saved) {
+                                const settings = JSON.parse(saved);
+                                repeatInterval = settings.interval || 3000;
+                            }
+                        } catch (e) {
+                            console.log('Using default repeat interval');
+                        }
+
+                        // Set up repeating sound
+                        const interval = setInterval(() => {
+                            playNotificationSound();
+                        }, repeatInterval);
+
+                        setNotificationInterval(interval);
+
+                        // Show browser notification
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification('🔔 Neue Bestellung!', {
+                                body: 'Eine neue Bestellung wartet auf Bestätigung.',
+                                tag: 'new-order',
+                                requireInteraction: true
+                            });
+                        }
+                    }
+
+                    // Reload pending count
+                    loadPendingCount();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            ordersSubscription.unsubscribe();
+            if (notificationInterval) {
+                clearInterval(notificationInterval);
+            }
+        };
+    }, [isAdmin, notificationInterval]);
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Navigation */}
@@ -64,9 +232,14 @@ export default function Layout() {
                                 <>
                                     <Link
                                         to="/admin"
-                                        className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 relative group"
+                                        className="text-gray-700 hover:text-primary-600 font-medium transition-colors duration-200 relative group flex items-center gap-2"
                                     >
                                         Dashboard
+                                        {pendingOrdersCount > 0 && (
+                                            <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">
+                                                {pendingOrdersCount}
+                                            </span>
+                                        )}
                                         <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600 group-hover:w-full transition-all duration-300"></span>
                                     </Link>
                                     <Link
@@ -206,9 +379,14 @@ export default function Layout() {
                                         <Link
                                             to="/admin"
                                             onClick={() => setMobileMenuOpen(false)}
-                                            className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 px-4 py-3 rounded-lg font-medium transition-colors"
+                                            className="text-gray-700 hover:text-primary-600 hover:bg-gray-50 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-between"
                                         >
-                                            Dashboard
+                                            <span>Dashboard</span>
+                                            {pendingOrdersCount > 0 && (
+                                                <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                                    {pendingOrdersCount}
+                                                </span>
+                                            )}
                                         </Link>
                                         <Link
                                             to="/admin/menu"

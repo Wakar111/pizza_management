@@ -1,13 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { orderService, menuService } from '../../lib/supabase';
+import { supabase } from '../../lib/supabase';
+import OrderConfirmationCard from '../../components/OrderConfirmationCard';
 
 interface Order {
     id: string;
     order_number?: string;
     customer_name: string;
+    customer_email?: string;
+    customer_phone?: string;
+    customer_address?: string;
     total_amount: number;
     status: string;
     created_at: string;
+    order_type?: 'delivery' | 'pickup';
+    notes?: string;
 }
 
 interface OrderAnalytics {
@@ -76,6 +83,7 @@ export default function Dashboard() {
         } catch (err) {}
         return { today: 0, week: 0, month: 0, avgPerDay: 0 };
     });
+    const [notificationInterval, setNotificationInterval] = useState<NodeJS.Timeout | null>(null);
 
     // Chart state
     const [chartPeriod, setChartPeriod] = useState<'week' | 'month'>('week');
@@ -94,10 +102,12 @@ export default function Dashboard() {
 
     const getStatusText = (status: string) => {
         const statusMap: Record<string, string> = {
+            awaiting_confirmation: 'Wartet auf Bestätigung',
             pending: 'Wartend',
             preparing: 'In Zubereitung',
             ready: 'Bereit',
-            delivered: 'Geliefert'
+            delivered: 'Geliefert',
+            cancelled: 'Abgelehnt'
         };
         return statusMap[status] || status;
     };
@@ -164,8 +174,10 @@ export default function Dashboard() {
 
     const loadDashboardData = useCallback(async () => {
         try {
+            console.log('[Dashboard] Loading dashboard data...');
             // Load orders for dashboard stats
             const orders = await orderService.getOrders();
+            console.log(`[Dashboard] Loaded ${orders.length} orders`);
 
             // Get current date in local timezone (start of day)
             const now = new Date();
@@ -257,8 +269,171 @@ export default function Dashboard() {
         loadDashboardData();
         loadMenuItemsCount();
         
-        // Don't reload on tab visibility change - it causes Supabase queries to hang
-    }, []);
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+        
+        // Set up real-time subscription for orders
+        const ordersSubscription = supabase
+            .channel('orders-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+                    schema: 'public',
+                    table: 'orders'
+                },
+                (payload: any) => {
+                    console.log('[Dashboard] Real-time order change:', payload);
+                    
+                    // Stop notification sound when order is cancelled (declined), confirmed, or deleted
+                    if (payload.eventType === 'UPDATE') {
+                        const newStatus = payload.new?.status;
+                        if (newStatus === 'cancelled' || newStatus === 'pending') {
+                            if (notificationInterval) {
+                                clearInterval(notificationInterval);
+                                setNotificationInterval(null);
+                                console.log('🔇 Notification sound stopped (order status changed)');
+                            }
+                        }
+                    }
+                    
+                    // Also stop sound when order is deleted
+                    if (payload.eventType === 'DELETE') {
+                        if (notificationInterval) {
+                            clearInterval(notificationInterval);
+                            setNotificationInterval(null);
+                            console.log('🔇 Notification sound stopped (order deleted)');
+                        }
+                    }
+                    
+                    // Play notification sound for new orders
+                    if (payload.eventType === 'INSERT') {
+                        // Function to play notification sound
+                        const playNotificationSound = () => {
+                            try {
+                                // Get settings from localStorage (set by admin in Settings page) with defaults
+                                let volume1 = 0.6, volume2 = 0.6, volume3 = 0.7;
+                                let freq1 = 880, freq2 = 1046, freq3 = 1318;
+                                let waveType: OscillatorType = 'sine';
+                                
+                                try {
+                                    const saved = localStorage.getItem('notification_sound_settings');
+                                    if (saved) {
+                                        const settings = JSON.parse(saved);
+                                        volume1 = settings.volume1 || 0.6;
+                                        volume2 = settings.volume2 || 0.6;
+                                        volume3 = settings.volume3 || 0.7;
+                                        freq1 = settings.freq1 || 880;
+                                        freq2 = settings.freq2 || 1046;
+                                        freq3 = settings.freq3 || 1318;
+                                        waveType = settings.waveType || 'sine';
+                                    }
+                                } catch (e) {
+                                    console.log('Using default notification settings');
+                                }
+                                
+                                const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+                                
+                                // First beep
+                                const oscillator = audioContext.createOscillator();
+                                const gainNode = audioContext.createGain();
+                                
+                                oscillator.connect(gainNode);
+                                gainNode.connect(audioContext.destination);
+                                
+                                oscillator.frequency.value = freq1;
+                                oscillator.type = waveType;
+                                
+                                gainNode.gain.setValueAtTime(volume1, audioContext.currentTime);
+                                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+                                
+                                oscillator.start(audioContext.currentTime);
+                                oscillator.stop(audioContext.currentTime + 0.15);
+                                
+                                // Second beep
+                                const oscillator2 = audioContext.createOscillator();
+                                const gainNode2 = audioContext.createGain();
+                                oscillator2.connect(gainNode2);
+                                gainNode2.connect(audioContext.destination);
+                                oscillator2.frequency.value = freq2;
+                                oscillator2.type = waveType;
+                                gainNode2.gain.setValueAtTime(volume2, audioContext.currentTime + 0.2);
+                                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.35);
+                                oscillator2.start(audioContext.currentTime + 0.2);
+                                oscillator2.stop(audioContext.currentTime + 0.35);
+                                
+                                // Third beep
+                                const oscillator3 = audioContext.createOscillator();
+                                const gainNode3 = audioContext.createGain();
+                                oscillator3.connect(gainNode3);
+                                gainNode3.connect(audioContext.destination);
+                                oscillator3.frequency.value = freq3;
+                                oscillator3.type = waveType;
+                                gainNode3.gain.setValueAtTime(volume3, audioContext.currentTime + 0.4);
+                                gainNode3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+                                oscillator3.start(audioContext.currentTime + 0.4);
+                                oscillator3.stop(audioContext.currentTime + 0.6);
+                                
+                                console.log('🔊 Notification sound played');
+                            } catch (e) {
+                                console.log('Audio play failed:', e);
+                            }
+                        };
+                        
+                        // Play sound immediately
+                        playNotificationSound();
+                        
+                        // Clear any existing interval
+                        if (notificationInterval) {
+                            clearInterval(notificationInterval);
+                        }
+                        
+                        // Get repeat interval from localStorage (default: 3000ms = 3 seconds)
+                        let repeatInterval = 3000;
+                        try {
+                            const saved = localStorage.getItem('notification_sound_settings');
+                            if (saved) {
+                                const settings = JSON.parse(saved);
+                                repeatInterval = settings.interval || 3000;
+                            }
+                        } catch (e) {
+                            console.log('Using default repeat interval');
+                        }
+                        
+                        // Set up interval to play sound repeatedly
+                        const interval = setInterval(() => {
+                            playNotificationSound();
+                        }, repeatInterval);
+                        
+                        setNotificationInterval(interval);
+                        
+                        // Show browser notification
+                        if ('Notification' in window && Notification.permission === 'granted') {
+                            new Notification('🔔 Neue Bestellung!', {
+                                body: 'Eine neue Bestellung wartet auf Bestätigung.',
+                                tag: 'new-order',
+                                requireInteraction: true
+                            });
+                        }
+                    }
+                    
+                    // Reload dashboard data when orders change
+                    loadDashboardData();
+                }
+            )
+            .subscribe();
+
+        // Cleanup subscription on unmount
+        return () => {
+            ordersSubscription.unsubscribe();
+            // Clear notification interval if exists
+            if (notificationInterval) {
+                clearInterval(notificationInterval);
+            }
+        };
+    }, [loadDashboardData, notificationInterval]);
 
     // Recalculate chart data when period or orders change
     useEffect(() => {
@@ -326,36 +501,50 @@ export default function Dashboard() {
                         </a>
                     </div>
 
-                    {/* Charts and Recent Orders */}
+                    {/* Pending Confirmations and Charts */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100">
-                            <h2 className="text-xl sm:text-2xl font-bold mb-4">Aktuelle Bestellungen</h2>
-                            {recentOrders.length === 0 ? (
-                                <div className="text-gray-500">
-                                    Keine aktuellen Bestellungen
+                            <h2 className="text-xl sm:text-2xl font-bold mb-4 flex items-center gap-2">
+                                <span>⏰ Bestellungen bestätigen</span>
+                                {recentOrders.filter(o => o.status === 'awaiting_confirmation').length > 0 && (
+                                    <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                                        {recentOrders.filter(o => o.status === 'awaiting_confirmation').length}
+                                    </span>
+                                )}
+                            </h2>
+                            {recentOrders.filter(o => o.status === 'awaiting_confirmation').length === 0 ? (
+                                <div className="text-center py-8 text-gray-500">
+                                    <div className="text-4xl mb-2">✅</div>
+                                    <p>Keine Bestellungen warten auf Bestätigung</p>
                                 </div>
                             ) : (
-                                <div className="space-y-2">
-                                    {recentOrders.slice(0, 5).map((order) => (
-                                        <div
-                                            key={order.id}
-                                            className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                                        >
-                                            <div>
-                                                <p className="font-medium">{order.customer_name}</p>
-                                                <p className="text-sm text-gray-600">€{order.total_amount.toFixed(2)}</p>
-                                            </div>
-                                            <span
-                                                className={`px-2 py-1 rounded text-xs font-medium ${order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                    order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
-                                                        order.status === 'ready' ? 'bg-green-100 text-green-800' :
-                                                            'bg-gray-100 text-gray-800'
-                                                    }`}
-                                            >
-                                                {getStatusText(order.status)}
-                                            </span>
-                                        </div>
-                                    ))}
+                                <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                                    {recentOrders
+                                        .filter(o => o.status === 'awaiting_confirmation')
+                                        .map((order) => (
+                                            <OrderConfirmationCard
+                                                key={order.id}
+                                                order={order}
+                                                onConfirmed={() => {
+                                                    // Stop notification sound
+                                                    if (notificationInterval) {
+                                                        clearInterval(notificationInterval);
+                                                        setNotificationInterval(null);
+                                                    }
+                                                    // Reload orders after confirmation
+                                                    loadDashboardData();
+                                                }}
+                                                onDeclined={() => {
+                                                    // Stop notification sound
+                                                    if (notificationInterval) {
+                                                        clearInterval(notificationInterval);
+                                                        setNotificationInterval(null);
+                                                    }
+                                                    // Reload orders after decline
+                                                    loadDashboardData();
+                                                }}
+                                            />
+                                        ))}
                                 </div>
                             )}
                         </div>
