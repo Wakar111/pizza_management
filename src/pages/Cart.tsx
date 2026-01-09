@@ -74,7 +74,10 @@ export default function Cart() {
         setSubmitting(true);
 
         try {
-            const fullAddress = `${customerData.street}, ${customerData.zip} ${customerData.city}`;
+            // For pickup orders, don't construct address from empty fields
+            const fullAddress = customerData.orderType === 'pickup' 
+                ? 'Abholung' 
+                : `${customerData.street}, ${customerData.zip} ${customerData.city}`;
 
             const order = await orderService.createOrder({
                 customer_name: customerData.name,
@@ -92,6 +95,7 @@ export default function Cart() {
                 discount_amount: totalDiscountAmount,
                 total_amount: totalAmount,
                 payment_method: paymentMethod,
+                order_type: customerData.orderType || 'delivery',
                 items: items
             });
 

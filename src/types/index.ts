@@ -59,6 +59,7 @@ export interface Order {
     items: OrderItem[];
     created_at: string;
     notes?: string;
+    order_type?: 'delivery' | 'pickup';
 }
 
 // User Types

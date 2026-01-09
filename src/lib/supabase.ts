@@ -291,6 +291,7 @@ export const orderService = {
                     payment_method: orderData.payment_method || 'cash',
                     payment_status: orderData.payment_status || 'pending',
                     status: orderData.status || 'pending',
+                    order_type: orderData.order_type || 'delivery',
                 }])
                 .select()
                 .single();

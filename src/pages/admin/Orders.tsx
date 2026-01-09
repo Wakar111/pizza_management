@@ -32,6 +32,7 @@ interface Order {
     payment_method: string;
     created_at: string;
     order_items: OrderItem[];
+    order_type?: 'delivery' | 'pickup';
 }
 
 export default function Orders() {
@@ -307,6 +308,13 @@ export default function Orders() {
                                 <div className="bg-gray-50 px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
                                     <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
                                         <span className="font-mono text-sm sm:text-base font-bold text-gray-500">#{String(order.id).substring(0, 8)}</span>
+                                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                                            order.order_type === 'pickup' 
+                                                ? 'bg-blue-100 text-blue-800' 
+                                                : 'bg-orange-100 text-orange-800'
+                                        }`}>
+                                            {order.order_type === 'pickup' ? '🏃 Abholung' : '🚚 Lieferung'}
+                                        </span>
                                         <span className="text-sm text-gray-500 flex items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -366,25 +374,40 @@ export default function Orders() {
                                                     </a>
                                                 </div>
                                             </div>
-                                            <div className="flex items-start">
-                                                <div className="w-8 text-gray-400">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    </svg>
+                                            {order.order_type === 'pickup' ? (
+                                                <div className="flex items-start bg-blue-50 p-3 rounded-lg">
+                                                    <div className="w-8 text-blue-600">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-blue-900">🏃 Abholung</p>
+                                                        <p className="text-sm text-blue-700 mt-1">Kunde holt die Bestellung selbst ab</p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-gray-900">{order.customer_address}</p>
-                                                    <a
-                                                        href={`https://maps.google.com/?q=${encodeURIComponent(order.customer_address)}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-xs text-primary-600 hover:underline mt-1 inline-block"
-                                                    >
-                                                        Auf Karte anzeigen
-                                                    </a>
+                                            ) : (
+                                                <div className="flex items-start">
+                                                    <div className="w-8 text-gray-400">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-gray-900">{order.customer_address}</p>
+                                                        <a
+                                                            href={`https://maps.google.com/?q=${encodeURIComponent(order.customer_address)}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-primary-600 hover:underline mt-1 inline-block"
+                                                        >
+                                                            Auf Karte anzeigen
+                                                        </a>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
                                             {order.notes && (
                                                 <div className="flex items-start bg-yellow-50 p-3 rounded-lg mt-2">
                                                     <div className="w-8 text-yellow-600">
@@ -434,14 +457,19 @@ export default function Orders() {
                                                     <span>Zwischensumme</span>
                                                     <span>€{(order.subtotal || 0).toFixed(2)}</span>
                                                 </div>
-                                                <div className="flex justify-between text-sm text-gray-600">
-                                                    <span>Liefergebühr</span>
-                                                    <span>€{(order.delivery_fee || 0).toFixed(2)}</span>
-                                                </div>
+                                                {order.order_type !== 'pickup' && (
+                                                    <div className="flex justify-between text-sm text-gray-600">
+                                                        <span>Liefergebühr</span>
+                                                        <span>€{(order.delivery_fee || 0).toFixed(2)}</span>
+                                                    </div>
+                                                )}
                                                 <div className="flex justify-between text-sm text-gray-600">
                                                     <span>Zahlungsart</span>
                                                     <span className="font-medium">
-                                                        {order.payment_method === 'cash' ? 'Barzahlung' : 'Online Bezahlt'}
+                                                        {order.payment_method === 'cash' 
+                                                            ? (order.order_type === 'pickup' ? 'Barzahlung bei Abholung' : 'Barzahlung bei Lieferung')
+                                                            : 'Online Bezahlt'
+                                                        }
                                                     </span>
                                                 </div>
                                                 <div className="flex justify-between text-base font-bold text-gray-900 pt-2 border-t border-gray-200">

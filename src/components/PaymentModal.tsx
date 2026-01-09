@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { formatPrice } from '../utils/format';
 import type { CartItem } from '../types';
 import type { Discount } from '../lib/supabase';
+import { RESTAURANT_INFO } from '../config/restaurant';
 
 interface PaymentModalProps {
     show: boolean;
@@ -21,6 +22,7 @@ interface PaymentModalProps {
         street: string;
         email: string;
         notes: string;
+        orderType?: 'delivery' | 'pickup';
     };
     submitting: boolean;
 }
@@ -103,19 +105,34 @@ export default function PaymentModal({
                     </div>
                 </div>
 
-                {/* Delivery Address */}
+                {/* Delivery Address or Pickup Location */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-semibold mb-2 text-gray-900">Lieferadresse</h3>
-                    <div className="text-sm text-gray-700">
-                        <p>{customerData.name}</p>
-                        <p>{customerData.street}</p>
-                        <p>{customerData.zip} {customerData.city}</p>
-                        <p className="mt-2">Tel: {customerData.phone}</p>
-                        <p>E-Mail: {customerData.email}</p>
-                        {customerData.notes && (
-                            <p className="mt-2 italic">Anmerkung: {customerData.notes}</p>
-                        )}
-                    </div>
+                    {customerData.orderType === 'pickup' ? (
+                        <>
+                            <h3 className="font-semibold mb-2 text-gray-900">🏃 Abholort</h3>
+                            <div className="mt-4 pt-4 border-t border-gray-300">
+                            </div>
+                            <div className="text-sm text-gray-700">
+                                <p className="text-gray-600">{RESTAURANT_INFO.address.street}</p>
+                                <p className="text-gray-600">{RESTAURANT_INFO.address.zip} {RESTAURANT_INFO.address.city}</p>
+                                <p className="text-gray-600">{RESTAURANT_INFO.address.country}</p>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <h3 className="font-semibold mb-2 text-gray-900">🚚 Lieferadresse</h3>
+                            <div className="text-sm text-gray-700">
+                                <p>{customerData.name}</p>
+                                <p>{customerData.street}</p>
+                                <p>{customerData.zip} {customerData.city}</p>
+                                <p className="mt-2">Tel: {customerData.phone}</p>
+                                <p>E-Mail: {customerData.email}</p>
+                                {customerData.notes && (
+                                    <p className="mt-2 italic">Anmerkung: {customerData.notes}</p>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Payment Method Selection */}
@@ -142,9 +159,15 @@ export default function PaymentModal({
                                 <div className="flex-1">
                                     <div className="flex items-center">
                                         <span className="text-2xl mr-2">💵</span>
-                                        <span className="font-semibold text-gray-900">Barzahlung bei Lieferung</span>
+                                        <span className="font-semibold text-gray-900">
+                                            {customerData.orderType === 'pickup' ? 'Barzahlung bei Abholung' : 'Barzahlung bei Lieferung'}
+                                        </span>
                                     </div>
-                                    <p className="text-sm text-gray-600 mt-1">Bezahlen Sie bequem in bar beim Lieferfahrer</p>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                        {customerData.orderType === 'pickup' 
+                                            ? 'Bezahlen Sie bequem in bar bei der Abholung' 
+                                            : 'Bezahlen Sie bequem in bar beim Lieferfahrer'}
+                                    </p>
                                 </div>
                             </div>
                         </div>

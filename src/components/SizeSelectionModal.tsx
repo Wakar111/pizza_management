@@ -19,6 +19,27 @@ export default function SizeSelectionModal({ show, menuItem, onClose, onSizeSele
         }
     }, [show, menuItem]);
 
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (show) {
+            // Save current scroll position
+            const scrollY = window.scrollY;
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
+            document.body.style.overflow = 'hidden';
+
+            return () => {
+                // Restore scroll position
+                document.body.style.position = '';
+                document.body.style.top = '';
+                document.body.style.width = '';
+                document.body.style.overflow = '';
+                window.scrollTo(0, scrollY);
+            };
+        }
+    }, [show]);
+
     if (!show || !menuItem) return null;
 
     // Use sizes from database (no fallback)
@@ -34,11 +55,14 @@ export default function SizeSelectionModal({ show, menuItem, onClose, onSizeSele
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+        <div 
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden"
+            onClick={onClose}
+        >
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
             <div
-                className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 max-h-[95vh] sm:max-h-[90vh] flex flex-col"
+                className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 max-h-[90vh] sm:max-h-[85vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Orange Header */}
@@ -58,7 +82,7 @@ export default function SizeSelectionModal({ show, menuItem, onClose, onSizeSele
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-6">
                     <div className="space-y-3">
                         {sizes.map((size, index) => {
                             const isSelected = selectedSize?.name === size.name;

@@ -4,6 +4,7 @@ import { useOpeningHours } from '../../hooks/useOpeningHours';
 import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { settingsService } from '../../lib/supabase';
+import { RESTAURANT_INFO } from '../../config/restaurant';
 
 interface DeliveryArea {
     id: string;
@@ -193,9 +194,9 @@ export default function UserInfo() {
                                     </svg>
                                     <div>
                                         <h3 className="font-semibold text-gray-900 mb-1">Adresse</h3>
-                                        <p className="text-gray-600">Musterstraße 123</p>
-                                        <p className="text-gray-600">12345 Berlin</p>
-                                        <p className="text-gray-600">Deutschland</p>
+                                        <p className="text-gray-600">{RESTAURANT_INFO.address.street}</p>
+                                        <p className="text-gray-600">{RESTAURANT_INFO.address.zip} {RESTAURANT_INFO.address.city}</p>
+                                        <p className="text-gray-600">{RESTAURANT_INFO.address.country}</p>
                                     </div>
                                 </div>
 
@@ -205,8 +206,8 @@ export default function UserInfo() {
                                     </svg>
                                     <div>
                                         <h3 className="font-semibold text-gray-900 mb-1">Telefon</h3>
-                                        <a href="tel:+493012345678" className="text-primary-600 hover:text-primary-700">
-                                            +49 30 12345678
+                                        <a href={`tel:${RESTAURANT_INFO.contact.phone.replace(/\s/g, '')}`} className="text-primary-600 hover:text-primary-700">
+                                            {RESTAURANT_INFO.contact.phone}
                                         </a>
                                     </div>
                                 </div>

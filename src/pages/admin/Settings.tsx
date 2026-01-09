@@ -8,6 +8,7 @@ interface SettingsData {
     min_order_value_free_delivery: number;
     delivery_fee: number;
     estimated_delivery_time: string;
+    estimated_pickup_time: string;
 }
 
 interface DeliveryArea {
@@ -30,7 +31,8 @@ export default function Settings() {
         return {
             min_order_value_free_delivery: 50,
             delivery_fee: 2.50,
-            estimated_delivery_time: '40-50'
+            estimated_delivery_time: '40-50',
+            estimated_pickup_time: '15'
         };
     });
 
@@ -100,7 +102,8 @@ export default function Settings() {
                     delivery_fee: typeof data.delivery_fee === 'string'
                         ? parseFloat(data.delivery_fee) || 2.50
                         : parseFloat(data.delivery_fee) || 2.50,
-                    estimated_delivery_time: data.estimated_delivery_time || '40-50'
+                    estimated_delivery_time: data.estimated_delivery_time || '40-50',
+                    estimated_pickup_time: data.estimated_pickup_time || '15'
                 };
                 setSettings(loadedSettings);
                 setOriginalSettings(loadedSettings);
@@ -309,7 +312,8 @@ export default function Settings() {
         if (!originalSettings) return false;
         return settings.min_order_value_free_delivery !== originalSettings.min_order_value_free_delivery ||
             settings.delivery_fee !== originalSettings.delivery_fee ||
-            settings.estimated_delivery_time !== originalSettings.estimated_delivery_time;
+            settings.estimated_delivery_time !== originalSettings.estimated_delivery_time ||
+            settings.estimated_pickup_time !== originalSettings.estimated_pickup_time;
     };
 
     const resetSettings = () => {
@@ -334,6 +338,7 @@ export default function Settings() {
                 minimum_order_value: settings.min_order_value_free_delivery,
                 delivery_fee: settings.delivery_fee,
                 estimated_delivery_time: settings.estimated_delivery_time,
+                estimated_pickup_time: settings.estimated_pickup_time,
                 updated_by: user?.id,
                 updated_at: new Date().toISOString()
             });
@@ -623,6 +628,29 @@ export default function Settings() {
                                     )}
                                     <p className="mt-2 text-sm text-gray-500">
                                         Geben Sie die geschätzte Lieferzeit ein (z.B. "40-50" für 40-50 Minuten oder "30" für 30 Minuten). Dies wird den Kunden angezeigt.
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        🏃 Geschätzte Abholzeit (Minuten)
+                                    </label>
+                                    <div className="relative rounded-md shadow-sm max-w-xs">
+                                        <input
+                                            type="text"
+                                            value={settings.estimated_pickup_time}
+                                            onChange={(e) => setSettings(prev => ({ ...prev, estimated_pickup_time: e.target.value }))}
+                                            className="block w-full rounded-md border-gray-300 px-3 pr-12 focus:border-primary-500 focus:ring-primary-500 py-2 border"
+                                            placeholder="z.B. 15"
+                                        />
+                                    </div>
+                                    {originalSettings && (
+                                        <p className="mt-2 text-sm text-gray-500">
+                                            Aktueller Wert: {originalSettings.estimated_pickup_time} min
+                                        </p>
+                                    )}
+                                    <p className="mt-2 text-sm text-gray-500">
+                                        Geben Sie die geschätzte Abholzeit ein (z.B. "15" für 15 Minuten). Dies wird den Kunden bei Selbstabholung angezeigt.
                                     </p>
                                 </div>
                             </div>

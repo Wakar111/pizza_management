@@ -57,6 +57,27 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
         }
     }, [show, menuItem?.id]);
 
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (show) {
+            // Save current scroll position
+            const scrollY = window.scrollY;
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${scrollY}px`;
+            document.body.style.width = '100%';
+            document.body.style.overflow = 'hidden';
+
+            return () => {
+                // Restore scroll position
+                document.body.style.position = '';
+                document.body.style.top = '';
+                document.body.style.width = '';
+                document.body.style.overflow = '';
+                window.scrollTo(0, scrollY);
+            };
+        }
+    }, [show]);
+
     if (!show || !menuItem) return null;
 
     // Group extras by category
@@ -105,11 +126,14 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
+        <div 
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-hidden"
+            onClick={onClose}
+        >
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
             <div
-                className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 max-h-[95vh] sm:max-h-[90vh] flex flex-col"
+                className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 max-h-[90vh] sm:max-h-[85vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Orange Header */}
@@ -129,7 +153,7 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto px-6 py-4">
+                <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4">
                     {loading ? (
                         <div className="flex justify-center items-center py-12">
                             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
