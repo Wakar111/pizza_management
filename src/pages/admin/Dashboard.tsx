@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { orderService, menuService } from '../../lib/supabase';
 import { supabase } from '../../lib/supabase';
 import OrderConfirmationCard from '../../components/OrderConfirmationCard';
+import { playNotificationSound } from '../../utils/notificationSound';
 
 interface Order {
     id: string;
@@ -298,78 +299,6 @@ export default function Dashboard() {
                     
                     // Play notification sound for new orders
                     if (payload.eventType === 'INSERT') {
-                        // Function to play notification sound
-                        const playNotificationSound = () => {
-                            try {
-                                // Get settings from localStorage (set by admin in Settings page) with defaults
-                                let volume1 = 0.6, volume2 = 0.6, volume3 = 0.7;
-                                let freq1 = 880, freq2 = 1046, freq3 = 1318;
-                                let waveType: OscillatorType = 'sine';
-                                
-                                try {
-                                    const saved = localStorage.getItem('notification_sound_settings');
-                                    if (saved) {
-                                        const settings = JSON.parse(saved);
-                                        volume1 = settings.volume1 || 0.6;
-                                        volume2 = settings.volume2 || 0.6;
-                                        volume3 = settings.volume3 || 0.7;
-                                        freq1 = settings.freq1 || 880;
-                                        freq2 = settings.freq2 || 1046;
-                                        freq3 = settings.freq3 || 1318;
-                                        waveType = settings.waveType || 'sine';
-                                    }
-                                } catch (e) {
-                                    console.log('Using default notification settings');
-                                }
-                                
-                                const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-                                
-                                // First beep
-                                const oscillator = audioContext.createOscillator();
-                                const gainNode = audioContext.createGain();
-                                
-                                oscillator.connect(gainNode);
-                                gainNode.connect(audioContext.destination);
-                                
-                                oscillator.frequency.value = freq1;
-                                oscillator.type = waveType;
-                                
-                                gainNode.gain.setValueAtTime(volume1, audioContext.currentTime);
-                                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-                                
-                                oscillator.start(audioContext.currentTime);
-                                oscillator.stop(audioContext.currentTime + 0.15);
-                                
-                                // Second beep
-                                const oscillator2 = audioContext.createOscillator();
-                                const gainNode2 = audioContext.createGain();
-                                oscillator2.connect(gainNode2);
-                                gainNode2.connect(audioContext.destination);
-                                oscillator2.frequency.value = freq2;
-                                oscillator2.type = waveType;
-                                gainNode2.gain.setValueAtTime(volume2, audioContext.currentTime + 0.2);
-                                gainNode2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.35);
-                                oscillator2.start(audioContext.currentTime + 0.2);
-                                oscillator2.stop(audioContext.currentTime + 0.35);
-                                
-                                // Third beep
-                                const oscillator3 = audioContext.createOscillator();
-                                const gainNode3 = audioContext.createGain();
-                                oscillator3.connect(gainNode3);
-                                gainNode3.connect(audioContext.destination);
-                                oscillator3.frequency.value = freq3;
-                                oscillator3.type = waveType;
-                                gainNode3.gain.setValueAtTime(volume3, audioContext.currentTime + 0.4);
-                                gainNode3.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
-                                oscillator3.start(audioContext.currentTime + 0.4);
-                                oscillator3.stop(audioContext.currentTime + 0.6);
-                                
-                                console.log('🔊 Notification sound played');
-                            } catch (e) {
-                                console.log('Audio play failed:', e);
-                            }
-                        };
-                        
                         // Play sound immediately
                         playNotificationSound();
                         
