@@ -29,6 +29,7 @@ export interface OrderEmailData {
     payment_status: string;
     notes?: string;
     estimated_delivery_time?: string;
+    order_type?: 'delivery' | 'pickup';
 }
 
 // Send order emails via backend

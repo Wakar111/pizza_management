@@ -287,6 +287,8 @@ export const orderService = {
                     notes: orderData.notes,
                     subtotal: orderData.subtotal,
                     delivery_fee: orderData.delivery_fee,
+                    discount_amount: orderData.discount_amount || 0,
+                    discounts: orderData.discounts || [],
                     total_amount: orderData.total_amount,
                     payment_method: orderData.payment_method || 'cash',
                     payment_status: orderData.payment_status || 'pending',
@@ -488,6 +490,21 @@ export const orderService = {
 
             // Send confirmation emails
             console.log('[orderService] Sending order confirmation emails after admin confirmation...');
+            
+            // Parse discounts if they're stored as JSON string
+            let parsedDiscounts = order.discounts || [];
+            if (typeof parsedDiscounts === 'string') {
+                try {
+                    parsedDiscounts = JSON.parse(parsedDiscounts);
+                } catch (e) {
+                    console.error('[orderService] Error parsing discounts:', e);
+                    parsedDiscounts = [];
+                }
+            }
+            
+            console.log('[orderService] Order discounts:', parsedDiscounts);
+            console.log('[orderService] Discount amount:', order.discount_amount);
+            
             await sendOrderEmails({
                 customer_name: order.customer_name,
                 customer_email: order.customer_email,
@@ -497,13 +514,14 @@ export const orderService = {
                 items: emailItems,
                 subtotal: order.subtotal,
                 delivery_fee: order.delivery_fee,
-                discounts: [],
-                discount_amount: 0,
+                discounts: parsedDiscounts,
+                discount_amount: order.discount_amount || 0,
                 total_amount: order.total_amount,
                 payment_method: order.payment_method,
                 payment_status: order.payment_status,
                 notes: order.notes,
-                estimated_delivery_time: estimatedTime
+                estimated_delivery_time: estimatedTime,
+                order_type: order.order_type || 'delivery'
             });
 
             return { success: true, order };
