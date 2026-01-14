@@ -222,7 +222,7 @@ export default function Layout() {
                                 <div className="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
                                     Crusty Pizza
                                 </div>
-                                <div className="hidden md:block text-xs text-gray-500 -mt-1">Estd 2018</div>
+                                <div className="hidden md:block text-xs text-gray-500 -mt-1">Estd 2012</div>
                             </div>
                         </Link>
 
