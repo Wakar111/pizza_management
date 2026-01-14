@@ -208,7 +208,7 @@ export default function Abrechnungen() {
                     logoImg.onload = resolve;
                     logoImg.onerror = reject;
                 });
-                doc.addImage(logoImg, 'PNG', 140, 10, 70, 50);
+                doc.addImage(logoImg, 'PNG', 140, 10, 50, 50);
             } catch (err) {
                 console.log('Logo could not be loaded, continuing without it');
             }

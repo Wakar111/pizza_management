@@ -360,7 +360,7 @@ export default function Menu() {
                             key={category}
                             onClick={() => setSelectedCategory(category)}
                             className={`px-3 py-2 sm:px-4 text-sm sm:text-base rounded-lg font-medium transition-colors ${selectedCategory === category
-                                ? 'bg-amber-500 text-white'
+                                ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
@@ -598,7 +598,7 @@ export default function Menu() {
                                             onChange={e => setItemForm(prev => ({ ...prev, name: e.target.value }))}
                                             type="text"
                                             required
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                             placeholder="z.B. Pizza Margherita"
                                         />
                                     </div>
@@ -610,7 +610,7 @@ export default function Menu() {
                                             id="item-description"
                                             value={itemForm.description}
                                             onChange={e => setItemForm(prev => ({ ...prev, description: e.target.value }))}
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                                             rows={3}
                                             placeholder="Beschreibe das Gericht..."
                                         />
@@ -623,7 +623,7 @@ export default function Menu() {
                                             id="item-category"
                                             value={itemForm.category}
                                             onChange={e => setItemForm(prev => ({ ...prev, category: e.target.value }))}
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
                                         >
                                             <option value="">Kategorie wählen...</option>
                                             {categories.filter(c => c !== 'Alle').map(cat => (
@@ -641,7 +641,7 @@ export default function Menu() {
                                             onChange={e => setItemForm(prev => ({ ...prev, price: e.target.value }))}
                                             type="text"
                                             required
-                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                             placeholder="9.9"
                                             onBlur={normalizePrice}
                                         />
@@ -659,7 +659,7 @@ export default function Menu() {
                                             <button
                                                 type="button"
                                                 onClick={addSize}
-                                                className="text-sm text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1"
+                                                className="text-sm text-primary-600 hover:text-primary-700 font-semibold flex items-center gap-1"
                                             >
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -689,7 +689,7 @@ export default function Menu() {
                                                                 }}
                                                                 type="text"
                                                                 placeholder="z.B. Normal, Menü"
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                                                 required
                                                                 maxLength={50}
                                                             />
@@ -699,7 +699,7 @@ export default function Menu() {
                                                                 onBlur={() => onSizePriceBlur(index)}
                                                                 type="text"
                                                                 placeholder="9.9"
-                                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                                                 required
                                                             />
                                                         </div>
@@ -709,7 +709,7 @@ export default function Menu() {
                                                                     type="checkbox"
                                                                     checked={size.default || false}
                                                                     onChange={() => setDefaultSize(index)}
-                                                                    className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 mr-1.5"
+                                                                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 mr-1.5"
                                                                 />
                                                                 Standard
                                                             </label>
@@ -748,7 +748,7 @@ export default function Menu() {
                                             onChange={e => setItemForm(prev => ({ ...prev, available: e.target.checked }))}
                                             type="checkbox"
                                             id="available"
-                                            className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 mr-2"
+                                            className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 mr-2"
                                         />
                                         <label htmlFor="available" className="text-sm font-medium text-gray-700">Verfügbar</label>
                                     </div>
@@ -766,7 +766,7 @@ export default function Menu() {
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="flex-1 px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                        className="flex-1 px-3 py-2 sm:px-4 sm:py-2.5 text-sm sm:text-base text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                                     >
                                         {saving ? 'Wird gespeichert...' : 'Speichern'}
                                     </button>

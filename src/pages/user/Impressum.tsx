@@ -120,7 +120,7 @@ export default function Impressum() {
                             Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:
                         </p>
                         <p className="text-gray-700 mb-4">
-                            <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">
+                            <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">
                                 https://ec.europa.eu/consumers/odr/
                             </a>
                         </p>
@@ -175,8 +175,8 @@ export default function Impressum() {
                     </div>
                 </section>
 
-                <div className="mt-12 p-6 bg-amber-50 rounded-lg border border-amber-200">
-                    <p className="text-sm text-amber-800">
+                <div className="mt-12 p-6 bg-primary-50 rounded-lg border border-primary-200">
+                    <p className="text-sm text-primary-800">
                         <strong>⚠️ Wichtiger Hinweis:</strong> Dies ist ein Muster-Impressum.
                         Bitte ersetzen Sie alle Platzhalter (Name, Adresse, Kontaktdaten, Steuernummern etc.)
                         durch Ihre tatsächlichen Daten. Für eine rechtssichere Version konsultieren Sie bitte einen

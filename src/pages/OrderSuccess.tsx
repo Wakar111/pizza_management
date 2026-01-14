@@ -53,7 +53,7 @@ export default function OrderSuccess() {
                     {orderNumber && (
                         <div className="mb-6 pb-6 border-b border-gray-200">
                             <p className="text-sm text-gray-500 mb-2">Bestellnummer</p>
-                            <p className="text-3xl font-bold text-orange-600">#{orderNumber}</p>
+                            <p className="text-3xl font-bold text-primary-600">#{orderNumber}</p>
                         </div>
                     )}
 
@@ -91,8 +91,8 @@ export default function OrderSuccess() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Was passiert als Nächstes?</h3>
 
                         <div className="flex items-start space-x-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                <span className="text-orange-600 font-bold">1</span>
+                            <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                <span className="text-primary-600 font-bold">1</span>
                             </div>
                             <div>
                                 <p className="font-medium text-gray-900">Ihre Bestellung wird bearbeitet</p>
@@ -101,8 +101,8 @@ export default function OrderSuccess() {
                         </div>
 
                         <div className="flex items-start space-x-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                <span className="text-orange-600 font-bold">2</span>
+                            <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                <span className="text-primary-600 font-bold">2</span>
                             </div>
                             <div>
                                 <p className="font-medium text-gray-900">Zubereitung</p>
@@ -111,8 +111,8 @@ export default function OrderSuccess() {
                         </div>
 
                         <div className="flex items-start space-x-4">
-                            <div className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                <span className="text-orange-600 font-bold">3</span>
+                            <div className="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                                <span className="text-primary-600 font-bold">3</span>
                             </div>
                             <div>
                                 <p className="font-medium text-gray-900">Lieferung</p>
@@ -126,7 +126,7 @@ export default function OrderSuccess() {
                 <div className="flex flex-col sm:flex-row gap-4">
                     <button
                         onClick={() => navigate('/menu')}
-                        className="flex-1 px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg"
+                        className="flex-1 px-6 py-4 bg-gradient-to-r from-primary-500 to-primary-500 hover:from-primary-600 hover:to-primary-600 text-white rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg"
                     >
                         Weiter einkaufen
                     </button>

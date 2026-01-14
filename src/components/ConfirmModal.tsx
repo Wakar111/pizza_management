@@ -42,10 +42,10 @@ export default function ConfirmModal({
             button: 'bg-red-600 hover:bg-red-700'
         },
         warning: {
-            bg: 'bg-amber-50',
-            border: 'border-amber-200',
-            icon: 'text-amber-600',
-            button: 'bg-amber-600 hover:bg-amber-700'
+            bg: 'bg-primary-50',
+            border: 'border-primary-200',
+            icon: 'text-primary-600',
+            button: 'bg-primary-600 hover:bg-primary-700'
         },
         info: {
             bg: 'bg-blue-50',

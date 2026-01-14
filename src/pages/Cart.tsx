@@ -179,7 +179,7 @@ export default function Cart() {
                 <p className="text-gray-600 mb-8">Fügen Sie Artikel aus unserem Menü hinzu</p>
                 <button
                     onClick={() => navigate('/menu')}
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-8 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                     Zum Menü
                 </button>
@@ -207,11 +207,11 @@ export default function Cart() {
                                                 <button
                                                     key={extra.id}
                                                     onClick={() => removeExtra(item.cartItemId, extra.id)}
-                                                    className="group text-xs bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-100 hover:bg-orange-100 hover:border-orange-200 transition-colors flex items-center gap-1"
+                                                    className="group text-xs bg-primary-50 text-primary-700 px-2 py-1 rounded border border-primary-100 hover:bg-primary-100 hover:border-primary-200 transition-colors flex items-center gap-1"
                                                     title={`${extra.name} entfernen`}
                                                 >
                                                     <span>{extra.name} (+{formatPrice(extra.price)})</span>
-                                                    <svg className="w-3 h-3 text-orange-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg className="w-3 h-3 text-primary-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                     </svg>
                                                 </button>
@@ -229,14 +229,14 @@ export default function Cart() {
                                 <div className="flex items-center bg-gray-50 rounded-lg p-1">
                                     <button
                                         onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                                        className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-600 hover:text-orange-600 flex items-center justify-center transition-colors font-bold"
+                                        className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-600 hover:text-primary-600 flex items-center justify-center transition-colors font-bold"
                                     >
                                         -
                                     </button>
                                     <span className="w-10 text-center font-medium text-gray-900">{item.quantity}</span>
                                     <button
                                         onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                                        className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-600 hover:text-orange-600 flex items-center justify-center transition-colors font-bold"
+                                        className="w-8 h-8 rounded-md bg-white shadow-sm text-gray-600 hover:text-primary-600 flex items-center justify-center transition-colors font-bold"
                                     >
                                         +
                                     </button>
@@ -301,16 +301,16 @@ export default function Cart() {
                         </div>
 
                         {/* Info Box */}
-                        <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 mb-6 text-sm">
+                        <div className="bg-primary-50 border border-primary-100 rounded-lg p-4 mb-6 text-sm">
                             {remainingForFreeDelivery > 0 ? (
                                 <>
                                     <div className="flex items-start gap-2 mb-2">
                                         <span className="text-lg">💰</span>
-                                        <span className="text-amber-900 font-medium">Liefergebühr: {formatPrice(deliveryFee)}</span>
+                                        <span className="text-primary-900 font-medium">Liefergebühr: {formatPrice(deliveryFee)}</span>
                                     </div>
-                                    <div className="flex items-start gap-2 mt-2 pt-2 border-t border-amber-200">
+                                    <div className="flex items-start gap-2 mt-2 pt-2 border-t border-primary-200">
                                         <span className="text-lg">🎁</span>
-                                        <span className="text-amber-800">
+                                        <span className="text-primary-800">
                                             Noch <span className="font-bold">{formatPrice(remainingForFreeDelivery)}</span> bis zur kostenlosen Lieferung (ab {formatPrice(minimumOrderValue)})
                                         </span>
                                     </div>
@@ -356,7 +356,7 @@ export default function Cart() {
                             disabled={!isOpen || openingHoursLoading}
                             className={`w-full py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${!isOpen || openingHoursLoading
                                 ? 'bg-gray-400 cursor-not-allowed opacity-60'
-                                : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 transform hover:scale-[1.02]'
+                                : 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 transform hover:scale-[1.02]'
                                 } text-white`}
                         >
                             {openingHoursLoading ? 'Lädt...' : !isOpen ? 'Restaurant geschlossen' : 'Zur Kasse'}

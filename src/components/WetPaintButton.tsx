@@ -10,7 +10,7 @@ const WetPaintButton = ({ to, children }: WetPaintButtonProps) => {
     return (
         <Link
             to={to}
-            className="group relative inline-block rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-10 py-4 text-lg font-semibold text-white transition-all duration-300 transform hover:scale-105 shadow-2xl hover:from-amber-600 hover:to-orange-600"
+            className="group relative inline-block rounded-full bg-gradient-to-r from-primary-500 to-primary-600 px-10 py-4 text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-2xl hover:from-primary-600 hover:to-primary-700"
         >
             {children}
             <Drip left="10%" height={24} delay={0.5} />
@@ -47,7 +47,7 @@ const Drip = ({ left, height, delay }: DripProps) => {
         >
             <div
                 style={{ height }}
-                className="w-2 rounded-b-full bg-orange-500 transition-colors group-hover:bg-orange-600"
+                className="w-2 rounded-b-full bg-primary-600 transition-colors group-hover:bg-primary-700"
             />
             <svg
                 width="6"
@@ -62,13 +62,13 @@ const Drip = ({ left, height, delay }: DripProps) => {
                         fillRule="evenodd"
                         clipRule="evenodd"
                         d="M5.4 0H0V5.4C0 2.41765 2.41766 0 5.4 0Z"
-                        className="fill-orange-500 transition-colors group-hover:fill-orange-600"
+                        className="fill-primary-600 transition-colors group-hover:fill-primary-700"
                     />
                     <path
                         fillRule="evenodd"
                         clipRule="evenodd"
                         d="M5.4 0H0V5.4C0 2.41765 2.41766 0 5.4 0Z"
-                        className="fill-orange-500 transition-colors group-hover:fill-orange-600"
+                        className="fill-primary-600 transition-colors group-hover:fill-primary-700"
                     />
                 </g>
                 <defs>
@@ -90,13 +90,13 @@ const Drip = ({ left, height, delay }: DripProps) => {
                         fillRule="evenodd"
                         clipRule="evenodd"
                         d="M5.4 0H0V5.4C0 2.41765 2.41766 0 5.4 0Z"
-                        className="fill-orange-500 transition-colors group-hover:fill-orange-600"
+                        className="fill-primary-600 transition-colors group-hover:fill-primary-700"
                     />
                     <path
                         fillRule="evenodd"
                         clipRule="evenodd"
                         d="M5.4 0H0V5.4C0 2.41765 2.41766 0 5.4 0Z"
-                        className="fill-orange-500 transition-colors group-hover:fill-orange-600"
+                        className="fill-primary-600 transition-colors group-hover:fill-primary-700"
                     />
                 </g>
                 <defs>
@@ -117,7 +117,7 @@ const Drip = ({ left, height, delay }: DripProps) => {
                     repeat: Infinity,
                     repeatDelay: 2,
                 }}
-                className="absolute top-full h-2 w-2 rounded-full bg-orange-500 transition-colors group-hover:bg-orange-600"
+                className="absolute top-full h-2 w-2 rounded-full bg-primary-600 transition-colors group-hover:bg-primary-700"
             />
         </motion.div>
     );

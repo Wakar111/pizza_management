@@ -2,19 +2,19 @@
 // This file contains restaurant information that is used across the application
 
 export const RESTAURANT_INFO = {
-    name: 'Pizza Restaurant',
-    logo: '/pizza-logo.png',
+    name: 'Crusty Pizza',
+    logo: '/crusty-logo.png',
     address: {
-        street: 'Musterstraße 123',
-        zip: '12345',
-        city: 'Berlin',
+        street: 'Hauptstrasse 66',
+        zip: '63853',
+        city: 'Mömlingen',
         country: 'Deutschland',
         // Full address as a single string
-        full: 'Musterstraße 123, 12345 Berlin, Deutschland'
+        full: 'Hauptstrasse 66, 63853 Mömlingen'
     },
     contact: {
-        phone: '+49 30 12345678',
+        phone: '06022 2656947',
         email: 'info@pizza-restaurant.de'
     },
-    taxNumber: 'DE1234567891'
+    taxNumber: '63552794804'
 } as const;

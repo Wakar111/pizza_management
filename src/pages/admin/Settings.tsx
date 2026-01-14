@@ -388,7 +388,7 @@ export default function Settings() {
                                         setDiscountForm({ name: '', percentage: null, startDate: '', endDate: '', enabled: true });
                                         setShowDiscountForm(!showDiscountForm);
                                     }}
-                                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
+                                    className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-primary-500 hover:bg-primary-600 text-white rounded-lg font-medium transition-colors whitespace-nowrap"
                                 >
                                     {showDiscountForm ? 'Abbrechen' : '+ Neue Aktion'}
                                 </button>
@@ -396,7 +396,7 @@ export default function Settings() {
 
                             {/* Add/Edit Form */}
                             {showDiscountForm && (
-                                <div className="mt-6 p-6 bg-amber-50 rounded-lg border border-amber-100">
+                                <div className="mt-6 p-6 bg-primary-50 rounded-lg border border-primary-100">
                                     <h3 className="text-lg font-semibold mb-4 text-gray-900">
                                         {editingDiscount ? 'Rabatt bearbeiten' : 'Neuer Rabatt'}
                                     </h3>
@@ -410,7 +410,7 @@ export default function Settings() {
                                                 value={discountForm.name}
                                                 onChange={(e) => setDiscountForm({ ...discountForm, name: e.target.value })}
                                                 placeholder="z.B. Black Friday Sale"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                                             />
                                         </div>
                                         <div>
@@ -430,7 +430,7 @@ export default function Settings() {
                                                     });
                                                 }}
                                                 placeholder="z.B. 20"
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                                             />
                                         </div>
                                         <div>
@@ -442,7 +442,7 @@ export default function Settings() {
                                                     type="checkbox"
                                                     checked={discountForm.enabled}
                                                     onChange={(e) => setDiscountForm({ ...discountForm, enabled: e.target.checked })}
-                                                    className="w-5 h-5 text-amber-600 border-gray-300 rounded focus:ring-amber-500"
+                                                    className="w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                                                 />
                                             </div>
                                         </div>
@@ -454,7 +454,7 @@ export default function Settings() {
                                                 type="date"
                                                 value={discountForm.startDate}
                                                 onChange={(e) => setDiscountForm({ ...discountForm, startDate: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                                             />
                                         </div>
                                         <div>
@@ -465,7 +465,7 @@ export default function Settings() {
                                                 type="date"
                                                 value={discountForm.endDate}
                                                 onChange={(e) => setDiscountForm({ ...discountForm, endDate: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                                             />
                                         </div>
                                     </div>
@@ -529,7 +529,7 @@ export default function Settings() {
                                                             <td className="px-4 py-3 text-xs sm:text-sm text-right space-x-2">
                                                                 <button
                                                                     onClick={() => handleEditDiscount(discount)}
-                                                                    className="text-amber-600 hover:text-amber-800 font-medium text-xs sm:text-sm"
+                                                                    className="text-primary-600 hover:text-primary-800 font-medium text-xs sm:text-sm"
                                                                 >
                                                                     Bearbeiten
                                                                 </button>
@@ -670,7 +670,7 @@ export default function Settings() {
                                             </span>
                                             <div className="flex items-center gap-2">
                                                 <span className="text-gray-400">---</span>
-                                                <span className="font-bold text-orange-600">+ €{settings.delivery_fee.toFixed(2)} Liefergebühr</span>
+                                                <span className="font-bold text-primary-600">+ €{settings.delivery_fee.toFixed(2)} Liefergebühr</span>
                                             </div>
                                         </div>
                                     </div>
@@ -797,7 +797,7 @@ export default function Settings() {
                                                         <td className="px-4 py-3 text-xs sm:text-sm text-right space-x-2">
                                                             <button
                                                                 onClick={() => handleEditDeliveryArea(area)}
-                                                                className="text-amber-600 hover:text-amber-800 font-medium text-xs sm:text-sm"
+                                                                className="text-primary-600 hover:text-primary-800 font-medium text-xs sm:text-sm"
                                                             >
                                                                 ✏️ Bearbeiten
                                                             </button>

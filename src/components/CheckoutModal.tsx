@@ -219,7 +219,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                             onClick={() => setOrderType('delivery')}
                             className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
                                 orderType === 'delivery'
-                                    ? 'bg-white text-orange-600 shadow-sm'
+                                    ? 'bg-white text-primary-600 shadow-sm'
                                     : 'text-gray-600 hover:text-gray-900'
                             }`}
                         >
@@ -230,7 +230,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                             onClick={() => setOrderType('pickup')}
                             className={`flex-1 py-2 px-4 rounded-md font-medium transition-all ${
                                 orderType === 'pickup'
-                                    ? 'bg-white text-orange-600 shadow-sm'
+                                    ? 'bg-white text-primary-600 shadow-sm'
                                     : 'text-gray-600 hover:text-gray-900'
                             }`}
                         >
@@ -251,7 +251,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                                     setFormData({ ...formData, name: e.target.value });
                                     if (errors.name) setErrors({ ...errors, name: '' });
                                 }}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${errors.name ? 'border-red-500' : 'border-gray-300'
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.name ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 placeholder="Ihr vollständiger Name"
                             />
@@ -265,7 +265,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                                 required
                                 value={formData.phone}
                                 onChange={e => handlePhoneChange(e.target.value)}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-300'
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 placeholder="Ihre Telefonnummer"
                             />
@@ -290,7 +290,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                                             required
                                             value={selectedAreaId}
                                             onChange={e => handleDeliveryAreaChange(e.target.value)}
-                                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${errors.deliveryArea ? 'border-red-500' : 'border-gray-300'
+                                            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.deliveryArea ? 'border-red-500' : 'border-gray-300'
                                                 }`}
                                         >
                                             <option value="">Bitte wählen Sie Ihr Liefergebiet</option>
@@ -319,7 +319,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                                             setFormData({ ...formData, street: e.target.value });
                                             if (errors.street) setErrors({ ...errors, street: '' });
                                         }}
-                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${errors.street ? 'border-red-500' : 'border-gray-300'
+                                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.street ? 'border-red-500' : 'border-gray-300'
                                             }`}
                                         placeholder="Ihre Straße mit Hausnummer"
                                     />
@@ -338,7 +338,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                                     setFormData({ ...formData, email: e.target.value });
                                     if (errors.email) setErrors({ ...errors, email: '' });
                                 }}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-300'
+                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-300'
                                     }`}
                                 placeholder="Ihre E-Mail"
                             />
@@ -350,7 +350,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                             <textarea
                                 value={formData.notes}
                                 onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                                 rows={2}
                                 placeholder="Besondere Wünsche oder Anmerkungen"
                             />
@@ -385,7 +385,7 @@ export default function CheckoutModal({ show, onClose, onNext }: CheckoutModalPr
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg hover:from-amber-600 hover:to-orange-600 transition-all font-medium shadow-md"
+                            className="flex-1 px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-all font-medium shadow-md"
                         >
                             Weiter zur Übersicht
                         </button>

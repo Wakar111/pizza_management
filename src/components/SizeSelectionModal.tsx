@@ -65,15 +65,15 @@ export default function SizeSelectionModal({ show, menuItem, onClose, onSizeSele
                 className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 max-h-[90vh] sm:max-h-[85vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Orange Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-5 rounded-t-2xl flex justify-between items-start">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-5 rounded-t-2xl flex justify-between items-start">
                     <div className="flex-1">
                         <h3 className="text-xl font-bold text-white">{menuItem.name}</h3>
-                        <p className="text-orange-100 text-sm mt-1">Größe wählen</p>
+                        <p className="text-red-100 text-sm mt-1">Größe wählen</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-white hover:text-orange-100 transition-colors ml-4 p-1"
+                        className="text-white hover:text-red-100 transition-colors ml-4 p-1"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -94,13 +94,13 @@ export default function SizeSelectionModal({ show, menuItem, onClose, onSizeSele
                                         setSelectedSize(size);
                                     }}
                                     className={`w-full p-4 rounded-lg border-2 transition-all ${isSelected
-                                        ? 'border-orange-400 bg-orange-50 shadow-md'
-                                        : 'border-gray-200 hover:border-orange-200 hover:bg-gray-50'
+                                        ? 'border-primary-400 bg-primary-50 shadow-md'
+                                        : 'border-gray-200 hover:border-primary-200 hover:bg-gray-50'
                                         }`}
                                 >
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center space-x-3">
-                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-gray-300'
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-primary-500 bg-primary-500' : 'border-gray-300'
                                                 }`}>
                                                 {isSelected && (
                                                     <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -108,7 +108,7 @@ export default function SizeSelectionModal({ show, menuItem, onClose, onSizeSele
                                             </div>
                                             <span className="font-medium text-gray-900">{size.name}</span>
                                         </div>
-                                        <span className="text-orange-600 font-semibold text-lg">
+                                        <span className="text-primary-600 font-semibold text-lg">
                                             {formatPrice(size.price)}
                                         </span>
                                     </div>
@@ -121,12 +121,12 @@ export default function SizeSelectionModal({ show, menuItem, onClose, onSizeSele
                 {/* Fixed Bottom Bar */}
                 <div className="border-t border-gray-200 bg-white px-6 py-4 rounded-b-2xl">
                     {selectedSize && (
-                        <div className="mb-4 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <div className="mb-4 p-3 bg-primary-50 rounded-lg border border-primary-200">
                             <div className="flex justify-between items-center">
                                 <span className="text-gray-700 font-medium">Ausgewählt:</span>
                                 <div className="text-right">
                                     <p className="font-semibold text-gray-900">{selectedSize.name}</p>
-                                    <p className="text-orange-600 font-bold text-lg">{formatPrice(selectedSize.price)}</p>
+                                    <p className="text-primary-600 font-bold text-lg">{formatPrice(selectedSize.price)}</p>
                                 </div>
                             </div>
                         </div>
@@ -144,7 +144,7 @@ export default function SizeSelectionModal({ show, menuItem, onClose, onSizeSele
                             onClick={handleConfirm}
                             disabled={!selectedSize}
                             className={`flex-1 px-4 py-3 text-white rounded-lg font-medium transition-colors shadow-lg ${selectedSize
-                                ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'
+                                ? 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700'
                                 : 'bg-gray-300 cursor-not-allowed'
                                 }`}
                         >

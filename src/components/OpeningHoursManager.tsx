@@ -132,7 +132,7 @@ export default function OpeningHoursManager({ onSave }: OpeningHoursManagerProps
                                 type="checkbox"
                                 checked={hours[day]?.isClosed || false}
                                 onChange={() => handleToggleClosed(day)}
-                                className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
+                                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
                             />
                             <span className="text-sm font-medium text-gray-700">Geschlossen</span>
                         </label>
@@ -146,14 +146,14 @@ export default function OpeningHoursManager({ onSave }: OpeningHoursManagerProps
                                         type="time"
                                         value={period.start}
                                         onChange={(e) => handlePeriodChange(day, index, 'start', e.target.value)}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                     />
                                     <span className="text-gray-500">—</span>
                                     <input
                                         type="time"
                                         value={period.end}
                                         onChange={(e) => handlePeriodChange(day, index, 'end', e.target.value)}
-                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                                     />
                                     {hours[day]?.periods.length > 1 && (
                                         <button
@@ -170,7 +170,7 @@ export default function OpeningHoursManager({ onSave }: OpeningHoursManagerProps
                             {hours[day]?.periods.length < 2 && (
                                 <button
                                     onClick={() => handleAddPeriod(day)}
-                                    className="text-sm text-orange-600 hover:text-orange-700 font-medium flex items-center gap-1"
+                                    className="text-sm text-primary-600 hover:text-primary-700 font-medium flex items-center gap-1"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -187,7 +187,7 @@ export default function OpeningHoursManager({ onSave }: OpeningHoursManagerProps
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="px-2 py-1 md:px-6 md:py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-lg font-semibold transition-all shadow-md disabled:cursor-not-allowed"
+                    className="px-2 py-1 md:px-6 md:py-2 bg-gradient-to-r from-primary-500 to-primary-500 hover:from-primary-600 hover:to-primary-600 disabled:from-gray-400 disabled:to-gray-400 text-white rounded-lg font-semibold transition-all shadow-md disabled:cursor-not-allowed"
                 >
                     {saving ? 'Speichert...' : 'Öffnungszeiten speichern'}
                 </button>

@@ -102,7 +102,7 @@ export default function PaymentModal({
                             )}
                             <div className="flex justify-between font-bold text-lg mt-2 text-gray-900">
                                 <span>Gesamt:</span>
-                                <span className="text-orange-600">{formatPrice(totalAmount)}</span>
+                                <span className="text-primary-600">{formatPrice(totalAmount)}</span>
                             </div>
                         </div>
                     </div>
@@ -146,16 +146,16 @@ export default function PaymentModal({
                         <div
                             onClick={() => setSelectedPaymentMethod('cash')}
                             className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedPaymentMethod === 'cash'
-                                ? 'border-orange-600 bg-orange-50'
-                                : 'border-gray-200 hover:border-orange-300'
+                                ? 'border-primary-600 bg-primary-50'
+                                : 'border-gray-200 hover:border-primary-300'
                                 }`}
                         >
                             <div className="flex items-center">
                                 <div className="flex-shrink-0 w-6 h-6 mr-3">
-                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === 'cash' ? 'border-orange-600' : 'border-gray-300'
+                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === 'cash' ? 'border-primary-600' : 'border-gray-300'
                                         }`}>
                                         {selectedPaymentMethod === 'cash' && (
-                                            <div className="w-3 h-3 rounded-full bg-orange-600"></div>
+                                            <div className="w-3 h-3 rounded-full bg-primary-600"></div>
                                         )}
                                     </div>
                                 </div>
@@ -223,10 +223,10 @@ export default function PaymentModal({
                             type="checkbox"
                             checked={acceptedTerms}
                             onChange={e => setAcceptedTerms(e.target.checked)}
-                            className="mt-1 w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                            className="mt-1 w-5 h-5 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
                         />
                         <span className="ml-3 text-sm text-gray-700">
-                            Ich habe die <a href="#" className="text-orange-600 hover:underline font-medium">Allgemeinen Geschäftsbedingungen</a> gelesen und akzeptiere diese.
+                            Ich habe die <a href="#" className="text-primary-600 hover:underline font-medium">Allgemeinen Geschäftsbedingungen</a> gelesen und akzeptiere diese.
                             Mit der Bestellung verpflichte ich mich zum Kauf der bestellten Waren.
                         </span>
                     </label>
@@ -246,7 +246,7 @@ export default function PaymentModal({
                         onClick={handleSubmit}
                         disabled={!selectedPaymentMethod || !acceptedTerms || submitting}
                         className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all ${selectedPaymentMethod && acceptedTerms && !submitting
-                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md'
+                            ? 'bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white shadow-md'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             }`}
                     >

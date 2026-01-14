@@ -366,7 +366,7 @@ export default function Orders() {
                                         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                                             order.order_type === 'pickup' 
                                                 ? 'bg-blue-100 text-blue-800' 
-                                                : 'bg-orange-100 text-orange-800'
+                                                : 'bg-primary-100 text-primary-800'
                                         }`}>
                                             {order.order_type === 'pickup' ? '🏃 Abholung' : '🚚 Lieferung'}
                                         </span>

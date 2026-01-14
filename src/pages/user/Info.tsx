@@ -90,7 +90,7 @@ export default function UserInfo() {
                         </div>
 
                         <div className="text-center p-8 bg-gray-50 rounded-2xl hover:shadow-lg transition-shadow">
-                            <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
                                 <span className="text-3xl">⭐</span>
                             </div>
                             <h3 className="text-2xl font-bold mb-4 text-gray-900">Ausgezeichnete Qualität</h3>

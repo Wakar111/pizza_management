@@ -97,7 +97,7 @@ export default function Menu() {
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="text-center mb-8">
                     <h1 className="text-4xl md:text-5xl font-bold mb-3 text-gray-900">Unsere Speisekarte</h1>
-                    <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-orange-500 mx-auto rounded-full"></div>
+                    <div className="w-20 h-1 bg-gradient-to-r from-primary-600 to-primary-500 mx-auto rounded-full"></div>
                 </div>
 
                 {/* Category Filter */}
@@ -108,8 +108,8 @@ export default function Menu() {
                                 key={category}
                                 onClick={() => setSelectedCategory(category)}
                                 className={`px-5 py-2 rounded-lg transition-all duration-300 font-medium ${selectedCategory === category
-                                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-amber-600'
+                                    ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-primary-600'
                                     }`}
                             >
                                 {category}
@@ -126,14 +126,14 @@ export default function Menu() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Suche Gerichte..."
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-shadow shadow-sm"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow shadow-sm"
                         />
                     </div>
                     <div className="w-full md:w-1/3">
                         <select
                             value={sortOption}
                             onChange={(e) => setSortOption(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-shadow shadow-sm"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow shadow-sm"
                         >
                             <option value="name-asc">Name A-Z</option>
                             <option value="name-desc">Name Z-A</option>
@@ -162,7 +162,7 @@ export default function Menu() {
                                         <div className="flex justify-between items-start">
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center space-x-3">
-                                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-amber-600 transition-colors">
+                                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
                                                         {item.name}
                                                     </h3>
                                                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${getCategoryClass(item.category)}`}>
@@ -175,7 +175,7 @@ export default function Menu() {
                                                 <span className="text-base font-medium text-gray-900">{formatPrice(item.price)}</span>
                                                 <button
                                                     onClick={() => handleAddToCart(item)}
-                                                    className="inline-flex items-center justify-center p-2 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors duration-200"
+                                                    className="inline-flex items-center justify-center p-2 rounded-full bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors duration-200"
                                                     title="Zum Warenkorb hinzufügen"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

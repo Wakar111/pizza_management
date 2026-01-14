@@ -28,8 +28,8 @@ export default function Datenschutz() {
                 <section className="mb-8">
                     <h2 className="text-2xl font-semibold mb-4 text-gray-900">3. Datenerfassung bei Bestellungen</h2>
 
-                    <div className="bg-amber-50 border-l-4 border-amber-500 p-6 mb-6">
-                        <h3 className="text-lg font-semibold mb-2 text-amber-900">📊 Welche Daten werden gespeichert?</h3>
+                    <div className="bg-primary-50 border-l-4 border-primary-500 p-6 mb-6">
+                        <h3 className="text-lg font-semibold mb-2 text-primary-900">📊 Welche Daten werden gespeichert?</h3>
                         <p className="text-gray-700 mb-3">
                             Bei jeder Bestellung über unseren Online-Shop werden folgende personenbezogene Daten
                             in unserer Datenbank gespeichert:

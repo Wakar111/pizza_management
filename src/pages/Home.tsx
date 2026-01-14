@@ -98,17 +98,11 @@ export default function Home() {
                 <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/50 to-black/70 md:bg-gradient-to-br md:from-black/70 md:via-black/50 md:to-black/70"></div>
                 <div
                     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: 'linear-gradient(45deg, #f97316 0%, #ea580c 25%, #c2410c 50%, #9a3412 75%, #7c2d12 100%)' }}
+                    style={{ backgroundImage: 'url(/crusty-bg-image.jpg)' }}
                 ></div>
+                {/* Dark red overlay to dim the image and blend with theme */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-900/85 via-primary-800/80 to-black/85"></div>
                 
-                {/* Pizza background image - faded on mobile only */}
-                <div className="absolute inset-0 flex items-center justify-end pr-0 opacity-30 md:hidden">
-                    <img
-                        src="/pizza2.png"
-                        alt="Pizza Background"
-                        className="w-[400px] h-auto object-contain"
-                    />
-                </div>
 
                 <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
                     <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -130,8 +124,8 @@ export default function Home() {
                             <div className="mb-6 md:mb-8">
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4 leading-tight">
                                     Restaurant
-                                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-orange-200">
-                                        Hot Pizza
+                                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-red-200 to-red-100">
+                                        Crusty Pizza
                                     </span>
                                 </h1>
                                 <p className="text-base md:text-lg lg:text-xl mb-6 md:mb-8 max-w-2xl leading-relaxed">
@@ -142,7 +136,7 @@ export default function Home() {
 
                             <div className="flex flex-col sm:flex-row gap-4 items-start mb-8 md:mb-0">
                                 <WetPaintButton to="/menu">
-                                    Jetzt bestellen
+                                    <span className="text-white">Jetzt bestellen</span>
                                 </WetPaintButton>
                             </div>
                         </div>
@@ -150,7 +144,7 @@ export default function Home() {
                         {/* Right side: Pizza image - visible on desktop only */}
                         <div className="hidden md:flex justify-center items-center">
                             <img
-                                src="/pizza2.png"
+                                src="/crusty-logo.png"
                                 alt="Delicious Pizza"
                                 className="w-full max-w-md h-auto object-contain drop-shadow-2xl transform hover:scale-105 transition-transform duration-300"
                             />
@@ -167,7 +161,7 @@ export default function Home() {
                         <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
                             Entdecken Sie unsere vielfältige Auswahl an köstlichen Gerichten
                         </p>
-                        <div className="w-20 h-1 bg-gradient-to-r from-amber-400 to-orange-500 mx-auto rounded-full"></div>
+                        <div className="w-20 h-1 bg-gradient-to-r from-primary-600 to-primary-500 mx-auto rounded-full"></div>
                     </div>
 
                     {loading ? (
@@ -187,7 +181,7 @@ export default function Home() {
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center space-x-3">
-                                                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-amber-600 transition-colors">
+                                                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
                                                             {item.name}
                                                         </h3>
                                                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${getCategoryClass(item.category)}`}>
@@ -200,7 +194,7 @@ export default function Home() {
                                                     <span className="text-base font-medium text-gray-900">{formatPrice(item.price)}</span>
                                                     <button
                                                         onClick={() => handleAddToCart(item)}
-                                                        className="inline-flex items-center justify-center p-2 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors duration-200"
+                                                        className="inline-flex items-center justify-center p-2 rounded-full bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors duration-200"
                                                         title="Zum Warenkorb hinzufügen"
                                                     >
                                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -217,7 +211,7 @@ export default function Home() {
                             <div className="text-center mt-8">
                                 <Link
                                     to="/menu"
-                                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-xl inline-block"
+                                    className="bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white px-10 py-4 rounded-full text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-xl inline-block"
                                 >
                                     Vollständiges Menü ansehen
                                 </Link>
@@ -231,7 +225,7 @@ export default function Home() {
             <section className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl font-bold mb-6 text-gray-900">Warum Restaurant Hot Pizza?</h2>
+                        <h2 className="text-4xl font-bold mb-6 text-gray-900">Warum Crusty Pizza?</h2>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-8">
@@ -258,7 +252,7 @@ export default function Home() {
                         </div>
 
                         <div className="text-center p-8 bg-gray-50 rounded-2xl hover:shadow-lg transition-shadow">
-                            <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <div className="w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                                 <span className="text-3xl">⭐</span>
                             </div>
                             <h3 className="text-2xl font-bold mb-4 text-gray-900">Ausgezeichnete Qualität</h3>

@@ -379,7 +379,7 @@ export default function Dashboard() {
                                 <div className="text-2xl sm:text-3xl mr-3 sm:mr-4">📊</div>
                                 <div>
                                     <h3 className="text-base sm:text-lg font-semibold">Bestellungen heute</h3>
-                                    <p className="text-xl sm:text-2xl font-bold text-amber-600">{todayOrders}</p>
+                                    <p className="text-xl sm:text-2xl font-bold text-primary-600">{todayOrders}</p>
                                 </div>
                             </div>
                         </div>

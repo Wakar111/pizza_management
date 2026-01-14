@@ -216,13 +216,13 @@ export default function Layout() {
                         {/* Logo */}
                         <Link to="/" className="flex items-center space-x-3 group">
                             <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                                <img src="/pizza-logo.png" alt="Pizza Logo" className="w-full h-full object-contain" />
+                                <img src="/crusty-logo.png" alt="Pizza Logo" className="w-full h-full object-contain" />
                             </div>
                             <div>
                                 <div className="text-2xl font-bold text-gray-900 group-hover:text-primary-600 transition-colors">
-                                    Hot Pizza
+                                    Crusty Pizza
                                 </div>
-                                <div className="hidden md:block text-xs text-gray-500 -mt-1">Authentische Küche</div>
+                                <div className="hidden md:block text-xs text-gray-500 -mt-1">Estd 2018</div>
                             </div>
                         </Link>
 
@@ -310,7 +310,7 @@ export default function Layout() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6m0 0h15M17 21a2 2 0 100-4 2 2 0 000 4zM9 21a2 2 0 100-4 2 2 0 000 4z" />
                                             </svg>
                                             {totalItems > 0 && (
-                                                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
+                                                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold animate-pulse">
                                                     {totalItems}
                                                 </span>
                                             )}
@@ -501,32 +501,32 @@ export default function Layout() {
             </main>
 
             {/* Footer */}
-            <footer className="bg-gray-800 text-white py-8 mt-12">
+            <footer className="bg-gradient-to-r from-primary-800 to-primary-700 text-white py-8 mt-12">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                        <p className="text-gray-300">© 2024 Restaurant Pizza. Alle Rechte vorbehalten.</p>
+                        <p className="text-gray-100">© 2024 Crusty Pizza. Alle Rechte vorbehalten.</p>
 
                         {/* Developer Credit */}
-                        <div className="text-gray-400 text-sm">
+                        <div className="text-gray-200 text-sm">
                             Developed by{' '}
                             <a
                                 href="https://innovativ-tech.de/"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-orange-400 hover:text-orange-300 transition-colors font-medium"
+                                className="text-white hover:text-gray-100 transition-colors font-medium underline"
                             >
                                 Innovative-Tech
                             </a>
                         </div>
 
                         <div className="flex space-x-6">
-                            <Link to="/user/agb" className="text-gray-300 hover:text-white transition-colors">
+                            <Link to="/user/agb" className="text-gray-100 hover:text-white transition-colors">
                                 AGB
                             </Link>
-                            <Link to="/user/datenschutz" className="text-gray-300 hover:text-white transition-colors">
+                            <Link to="/user/datenschutz" className="text-gray-100 hover:text-white transition-colors">
                                 Datenschutz
                             </Link>
-                            <Link to="/user/impressum" className="text-gray-300 hover:text-white transition-colors">
+                            <Link to="/user/impressum" className="text-gray-100 hover:text-white transition-colors">
                                 Impressum
                             </Link>
                         </div>

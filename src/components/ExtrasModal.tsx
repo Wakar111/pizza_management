@@ -136,15 +136,15 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
                 className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg sm:mx-4 max-h-[90vh] sm:max-h-[85vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Orange Header */}
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-5 rounded-t-2xl flex justify-between items-start">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-5 rounded-t-2xl flex justify-between items-start">
                     <div className="flex-1">
                         <h3 className="text-xl font-bold text-white">{menuItem.name}</h3>
-                        <p className="text-orange-100 text-sm mt-1">Extras hinzufügen</p>
+                        <p className="text-red-100 text-sm mt-1">Extras hinzufügen</p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-white hover:text-orange-100 transition-colors ml-4 p-1"
+                        className="text-white hover:text-red-100 transition-colors ml-4 p-1"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -156,7 +156,7 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
                 <div className="flex-1 overflow-y-auto overscroll-contain px-6 py-4">
                     {loading ? (
                         <div className="flex justify-center items-center py-12">
-                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500"></div>
                         </div>
                     ) : Object.keys(extrasGrouped).length === 0 ? (
                         <div className="text-center py-12 text-gray-500">
@@ -181,8 +181,8 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
                                                 <label
                                                     key={extra.id}
                                                     className={`flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer ${isSelected
-                                                        ? 'border-orange-300 bg-orange-50'
-                                                        : 'border-gray-200 hover:border-orange-200 hover:bg-gray-50'
+                                                        ? 'border-primary-300 bg-primary-50'
+                                                        : 'border-gray-200 hover:border-primary-200 hover:bg-gray-50'
                                                         }`}
                                                 >
                                                     <div className="flex items-center space-x-3">
@@ -190,11 +190,11 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
                                                             type="checkbox"
                                                             checked={isSelected}
                                                             onChange={() => toggleExtra(extra)}
-                                                            className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
+                                                            className="w-5 h-5 text-primary-500 border-gray-300 rounded focus:ring-primary-500 cursor-pointer"
                                                         />
                                                         <span className="font-medium text-gray-800">{extra.name}</span>
                                                     </div>
-                                                    <span className="text-orange-600 font-semibold">+{formatPrice(extra.price)}</span>
+                                                    <span className="text-primary-600 font-semibold">+{formatPrice(extra.price)}</span>
                                                 </label>
                                             );
                                         })}
@@ -216,8 +216,8 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
                         </div>
                         <div className="space-y-1 text-right">
                             <p className="font-medium text-gray-900">{formatPrice(numericBasePrice)}</p>
-                            <p className="font-medium text-orange-600">+{formatPrice(extrasTotal)}</p>
-                            <p className="font-bold text-orange-600 text-xl">{formatPrice(totalPrice)}</p>
+                            <p className="font-medium text-primary-600">+{formatPrice(extrasTotal)}</p>
+                            <p className="font-bold text-primary-600 text-xl">{formatPrice(totalPrice)}</p>
                         </div>
                     </div>
 
@@ -231,7 +231,7 @@ export default function ExtrasModal({ show, menuItem, selectedSize, basePrice: p
                         </button>
                         <button
                             onClick={handleAddToCart}
-                            className="flex-1 px-4 py-3 text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 rounded-lg font-medium transition-colors shadow-lg"
+                            className="flex-1 px-4 py-3 text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-lg font-medium transition-colors shadow-lg"
                         >
                             In den Warenkorb
                         </button>

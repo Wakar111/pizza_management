@@ -111,7 +111,7 @@ export default function OrderConfirmationCard({ order, onConfirmed, onDeclined }
                 onClose={() => setToast({ ...toast, show: false })}
                 duration={3000}
             />
-            <div className="bg-white border-2 border-orange-200 rounded-xl p-4 shadow-md">
+            <div className="bg-white border-2 border-primary-200 rounded-xl p-4 shadow-md">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
@@ -120,7 +120,7 @@ export default function OrderConfirmationCard({ order, onConfirmed, onDeclined }
                         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                             order.order_type === 'pickup' 
                                 ? 'bg-blue-100 text-blue-800' 
-                                : 'bg-orange-100 text-orange-800'
+                                : 'bg-primary-100 text-primary-800'
                         }`}>
                             {order.order_type === 'pickup' ? '🏃 Abholung' : '🚚 Lieferung'}
                         </span>
@@ -167,7 +167,7 @@ export default function OrderConfirmationCard({ order, onConfirmed, onDeclined }
                             −
                         </button>
                         <div className="text-center min-w-[100px]">
-                            <div className="text-2xl font-bold text-orange-600">
+                            <div className="text-2xl font-bold text-primary-600">
                                 {formatTime(estimatedTime)}
                             </div>
                             <div className="text-xs text-gray-500">geschätzt</div>
