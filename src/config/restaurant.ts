@@ -3,6 +3,7 @@
 
 export const RESTAURANT_INFO = {
     name: 'Pizza Restaurant',
+    logo: '/pizza-logo.png',
     address: {
         street: 'Musterstraße 123',
         zip: '12345',

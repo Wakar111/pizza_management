@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { orderService } from '../../lib/supabase';
 import Toast from '../../components/Toast';
+import jsPDF from 'jspdf';
+import { RESTAURANT_INFO } from '../../config/restaurant';
 
 interface OrderItem {
     id: string;
@@ -176,89 +178,136 @@ export default function Abrechnungen() {
         });
     };
 
-    const exportToCSV = () => {
-        const headers = ['Bestellnummer', 'Datum', 'Kunde', 'Zahlungsart', 'Artikel', 'Menge', 'Größe', 'Extras', 'Preis (€)', 'Zwischensumme (€)', 'Liefergebühr (€)', 'Gesamtbetrag (€)'];
-        const rows: string[][] = [];
-
-        filteredOrders.forEach(order => {
-            const orderBasics = [
-                order.id,
-                formatDate(order.created_at),
-                order.customer_name,
-                order.payment_method === 'cash' ? 'Barzahlung' : 'Online Bezahlt'
-            ];
-
-            if (order.order_items && order.order_items.length > 0) {
-                order.order_items.forEach((item, index) => {
-                    const extras = item.order_item_extras?.map(e => e.extra_name).join(', ') || '-';
-                    const itemPrice = ((item.size_price || item.menu_items.price) * item.quantity +
-                        (item.order_item_extras?.reduce((sum, e) => sum + e.extra_price, 0) || 0) * item.quantity).toFixed(2);
-
-                    rows.push([
-                        ...orderBasics,
-                        item.menu_items.name,
-                        item.quantity.toString(),
-                        item.size_name || '-',
-                        extras,
-                        itemPrice,
-                        index === 0 ? order.subtotal.toFixed(2) : '',
-                        index === 0 ? order.delivery_fee.toFixed(2) : '',
-                        index === 0 ? order.total_amount.toFixed(2) : ''
-                    ]);
-                });
-            } else {
-                rows.push([
-                    ...orderBasics,
-                    '-', '-', '-', '-', '-',
-                    order.subtotal.toFixed(2),
-                    order.delivery_fee.toFixed(2),
-                    order.total_amount.toFixed(2)
-                ]);
+    const exportToPDF = async () => {
+        try {
+            const doc = new jsPDF();
+            
+            // Calculate totals
+            const totalRevenue = filteredOrders.reduce((sum, order) => sum + order.total_amount, 0);
+            const netAmount = totalRevenue / 1.19; // Remove 19% MwSt
+            const mwstAmount = totalRevenue - netAmount;
+            
+            // Get date range
+            let fromDate = '';
+            let untilDate = '';
+            
+            if (dateFilter === 'custom' && customStartDate && customEndDate) {
+                fromDate = new Date(customStartDate).toLocaleDateString('de-DE');
+                untilDate = new Date(customEndDate).toLocaleDateString('de-DE');
+            } else if (filteredOrders.length > 0) {
+                const dates = filteredOrders.map(o => new Date(o.created_at));
+                fromDate = new Date(Math.min(...dates.map(d => d.getTime()))).toLocaleDateString('de-DE');
+                untilDate = new Date(Math.max(...dates.map(d => d.getTime()))).toLocaleDateString('de-DE');
             }
-        });
-
-        // Add total row at the end
-        const totalAmount = filteredOrders.reduce((sum, order) => sum + order.total_amount, 0);
-        const totalRow = ['', '', '', '', '', '', '', '', '', '', 'Summe', totalAmount.toFixed(2) + ' €'];
-        const MwstRow = ['', '', '', '', '', '', '', '', '', '', '', 'Preise inkl. 19% MwSt.'];
-        rows.push(totalRow);
-        rows.push(MwstRow);
-
-        const csvContent = [
-            headers.join(';'),
-            ...rows.map(row => row.join(';'))
-        ].join('\n');
-
-        // Generate dynamic filename based on date filter
-        let filename = 'Abrechnung';
-        if (dateFilter === 'today') {
-            filename += ' Heute';
-        } else if (dateFilter === 'week') {
-            filename += ' Diese Woche';
-        } else if (dateFilter === 'month') {
-            filename += ' Diesen Monat';
-        } else if (dateFilter === 'last-month') {
-            filename += ' Letzten Monat';
-        } else if (dateFilter === 'custom' && customStartDate && customEndDate) {
-            const startFormatted = formatDateShort(customStartDate);
-            const endFormatted = formatDateShort(customEndDate);
-            filename += ` ${startFormatted} - ${endFormatted}`;
-        } else {
-            filename += ' Alle';
+            
+            // Add logo (pizza-logo.png)
+            try {
+                const logoImg = new Image();
+                logoImg.src = RESTAURANT_INFO.logo;
+                await new Promise((resolve, reject) => {
+                    logoImg.onload = resolve;
+                    logoImg.onerror = reject;
+                });
+                doc.addImage(logoImg, 'PNG', 140, 10, 70, 50);
+            } catch (err) {
+                console.log('Logo could not be loaded, continuing without it');
+            }
+            
+            // Title
+            doc.setFontSize(20);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Rechnung', 20, 20);
+            
+            // Restaurant Info (left side)
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            let yPos = 40;
+            doc.text(RESTAURANT_INFO.name, 20, yPos);
+            yPos += 5;
+            doc.text(RESTAURANT_INFO.address.street, 20, yPos);
+            yPos += 5;
+            doc.text(`${RESTAURANT_INFO.address.zip} ${RESTAURANT_INFO.address.city}`, 20, yPos);
+            yPos += 5;
+            doc.text(RESTAURANT_INFO.address.country, 20, yPos);
+            yPos += 10;
+            
+            // Tax number and date
+            doc.text(`Steuernummer: ${RESTAURANT_INFO.taxNumber}`, 20, yPos);
+            yPos += 5;
+            doc.text(`Datum: ${new Date().toLocaleDateString('de-DE')}`, 20, yPos);
+            yPos += 15;
+            
+            // Main content section
+            doc.setFont('helvetica', 'normal');
+            doc.text('Folgende Bestellungen wurden von unserem restaurant angeommen:', 20, yPos);
+            yPos += 10;
+            
+            // Draw line
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 10;
+            
+            // Revenue line
+            doc.text(`${RESTAURANT_INFO.name} (${fromDate} bis einschließlich ${untilDate}): ${filteredOrders.length} Bestellungen im Wert von € ${totalRevenue.toFixed(2).replace('.', ',')}`, 20, yPos);
+            yPos += 15;
+            
+            // Draw line
+            doc.line(20, yPos, 190, yPos);
+            yPos += 10;
+            
+            // Summary section
+            doc.text('Zwischensumme', 20, yPos);
+            doc.text(`€ ${netAmount.toFixed(2).replace('.', ',')}`, 170, yPos, { align: 'right' });
+            yPos += 7;
+            
+            doc.text('MwSt. (19% von € ' + netAmount.toFixed(2).replace('.', ',') + ')', 20, yPos);
+            doc.text(`€ ${mwstAmount.toFixed(2).replace('.', ',')}`, 170, yPos, { align: 'right' });
+            yPos += 7;
+            
+            doc.setFont('helvetica', 'bold');
+            doc.text('Gesamtbetrag dieser Rechnung', 20, yPos);
+            doc.text(`€ ${totalRevenue.toFixed(2).replace('.', ',')}`, 170, yPos, { align: 'right' });
+            yPos += 15;
+            
+            // Draw final line
+            doc.setLineWidth(0.5);
+            doc.line(20, yPos, 190, yPos);
+            yPos += 10;
+            
+            // Summary statement in box
+            doc.setFont('helvetica', 'normal');
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+            doc.rect(20, yPos, 170, 10);
+            doc.text(`Ihr Umsatz in der Zeit vom ${fromDate} bis einschließlich ${untilDate}: € ${totalRevenue.toFixed(2).replace('.', ',')}.`, 22, yPos + 7);
+            
+            // Generate dynamic filename
+            let filename = 'Abrechnung';
+            if (dateFilter === 'today') {
+                filename += ' Heute';
+            } else if (dateFilter === 'week') {
+                filename += ' Diese Woche';
+            } else if (dateFilter === 'month') {
+                filename += ' Diesen Monat';
+            } else if (dateFilter === 'last-month') {
+                filename += ' Letzten Monat';
+            } else if (dateFilter === 'custom' && customStartDate && customEndDate) {
+                const startFormatted = formatDateShort(customStartDate);
+                const endFormatted = formatDateShort(customEndDate);
+                filename += ` ${startFormatted} - ${endFormatted}`;
+            } else {
+                filename += ' Alle';
+            }
+            filename += '.pdf';
+            
+            // Save PDF
+            doc.save(filename);
+            
+            showNotification('PDF-Export erfolgreich', 'success');
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            showNotification('Fehler beim PDF-Export', 'error');
         }
-        filename += '.csv';
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', filename);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        showNotification('CSV-Export erfolgreich', 'success');
     };
 
     const toggleOrderExpansion = (orderId: string) => {
@@ -351,14 +400,14 @@ export default function Abrechnungen() {
                         </div>
 
                         <button
-                            onClick={exportToCSV}
+                            onClick={exportToPDF}
                             disabled={filteredOrders.length === 0}
                             className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2 whitespace-nowrap"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            CSV Export
+                            PDF Export
                         </button>
                     </div>
                 </div>
