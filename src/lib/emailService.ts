@@ -1,7 +1,7 @@
-// Email Service using Node.js Backend
-// Backend server handles email sending via Nodemailer
+// Email Service using Netlify Functions
+// Netlify Functions handle email sending via Nodemailer
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3003'
+const API_URL = import.meta.env.VITE_API_URL || '/api'
 
 export interface OrderEmailData {
     customer_name: string;
